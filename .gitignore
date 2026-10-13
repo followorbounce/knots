@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+_debug*.html
+_dbg_*.html
+_gltest.html

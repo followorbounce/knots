@@ -1,0 +1,27 @@
+# Knot Atlas
+
+Interactive 3D guide to tying knots.
+
+## Knots
+
+- [Overhand Knot](https://followorbounce.github.io/knots/knots/overhand-knot/): The simplest knot there is, and the first move of many others
+- [Figure-Eight Knot](https://followorbounce.github.io/knots/knots/figure-eight-knot/): The standard stopper
+- [Square Knot](https://followorbounce.github.io/knots/knots/square-knot/): A flat binding knot for tying the two ends of one cord round something: a parcel, a bandage, a reefed sail
+- [Clove Hitch](https://followorbounce.github.io/knots/knots/clove-hitch/): Two turns round a post with the second crossing over the first
+- [Constrictor Knot](https://followorbounce.github.io/knots/knots/constrictor-knot/): A clove hitch with an extra tuck, which locks the two ends under the crossing turn
+- [Sheet Bend](https://followorbounce.github.io/knots/knots/sheet-bend/): The everyday knot for joining two ropes, including ropes of different thickness
+- [Double Fisherman’s Knot](https://followorbounce.github.io/knots/knots/double-fishermans-knot/): Each rope ties a double overhand round the other
+- [Rolling Hitch](https://followorbounce.github.io/knots/knots/rolling-hitch/): A hitch that holds against a pull along a pole or another rope, not just across it
+- [Round Turn and Two Half Hitches](https://followorbounce.github.io/knots/knots/round-turn-two-half-hitches/): A round turn on a ring or post takes the load while you finish with two half hitches round the standing part
+- [Prusik Knot](https://followorbounce.github.io/knots/knots/prusik-knot/): A loop of thinner cord wrapped round a rope
+- [Bowline](https://followorbounce.github.io/knots/knots/bowline/): The classic fixed loop
+- [Figure-Eight Loop](https://followorbounce.github.io/knots/knots/figure-eight-loop/): A Figure-Eight Knot tied in a doubled rope
+
+## Basics
+
+- [How rope is made](https://followorbounce.github.io/knots/basics/rope-construction/)
+- [What rope is made of](https://followorbounce.github.io/knots/basics/rope-materials/)
+- [Looking after rope](https://followorbounce.github.io/knots/basics/rope-care/)
+- [Coiling and storing](https://followorbounce.github.io/knots/basics/coiling-storing/)
+- [Words for the parts of a rope](https://followorbounce.github.io/knots/basics/terms/)
+- [Tying technique](https://followorbounce.github.io/knots/basics/technique/)

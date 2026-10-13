@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Knot finder | Knot Atlas</title>
+<meta name="description" content="Choose a knot by what the rope has to do: stop, join, attach, loop, grip or bind.">
+<link rel="canonical" href="https://followorbounce.github.io/knots/finder/">
+<meta property="og:title" content="Knot finder | Knot Atlas">
+<meta property="og:description" content="Choose a knot by what the rope has to do: stop, join, attach, loop, grip or bind.">
+<meta name="theme-color" content="#172326">
+<link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "bba4e16a7d9b4d9985eda0cda2624e60"}'></script>
+</head>
+<body class="p-finder">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <a class="brand" href="../index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="../assets/icon.svg#mark"/></svg><span>Knot Atlas</span></a>
+  <nav aria-label="Main">
+    <a href="../index.html">Knots</a>
+    <a href="../finder/index.html" aria-current="page">Finder</a>
+    <a href="../basics/index.html">Basics</a>
+    <a href="../about/index.html">About</a>
+  </nav>
+</header>
+<main id="main">
+
+<section class="page-head">
+  <p class="eyebrow">Knot finder</p>
+  <h1>What does the rope have to do?</h1>
+  <p class="lede">Pick the job and where you are. You get the best knots in this guide for it, easiest first, with what each one is good and bad at.</p>
+</section>
+<section class="finder">
+  <form class="fq" id="fq">
+    <label for="job">I need to</label>
+    <select id="job"><option value="stop">stop a rope pulling through a hole</option><option value="join">join two ropes</option><option value="attach">tie a rope to a post, rail or ring</option><option value="loop">make a loop that won’t slip</option><option value="grip">grip another rope or a pole</option><option value="bind">hold something closed or bundled</option></select>
+    <label for="where">Setting</label>
+    <select id="where"><option value="">Anywhere</option><option>Sailing</option><option>Climbing</option><option>Camping</option><option>Fishing</option><option>Household</option><option>Gardening</option><option>Horses</option><option>Gifts</option></select>
+    <label class="check"><input type="checkbox" id="undo"> It must be easy to untie afterwards</label>
+  </form>
+  <div class="answers" id="answers" aria-live="polite"></div>
+</section>
+<p class="note">Joining two ropes? Don’t use a Square Knot for that. It can spill apart under load.</p>
+<script type="application/json" id="finder-data">[{"slug": "overhand-knot", "name": "Overhand Knot", "jobs": ["stop"], "acts": ["Household", "Camping"], "difficulty": 1, "brief": "The simplest knot there is, and the first move of many others.", "security": "Holds", "untie": "Jams"}, {"slug": "figure-eight-knot", "name": "Figure-Eight Knot", "jobs": ["stop"], "acts": ["Sailing", "Climbing"], "difficulty": 1, "brief": "The standard stopper.", "security": "Holds", "untie": "Easy"}, {"slug": "square-knot", "name": "Square Knot", "jobs": ["bind"], "acts": ["Household", "Sailing"], "difficulty": 1, "brief": "A flat binding knot for tying the two ends of one cord round something: a parcel, a bandage, a reefed sail.", "security": "Low", "untie": "Easy"}, {"slug": "clove-hitch", "name": "Clove Hitch", "jobs": ["attach", "bind"], "acts": ["Camping", "Sailing", "Gardening"], "difficulty": 1, "brief": "Two turns round a post with the second crossing over the first.", "security": "Moderate", "untie": "Easy"}, {"slug": "constrictor-knot", "name": "Constrictor Knot", "jobs": ["bind", "grip"], "acts": ["Household", "Gardening"], "difficulty": 2, "brief": "A clove hitch with an extra tuck, which locks the two ends under the crossing turn.", "security": "High", "untie": "Hard"}, {"slug": "sheet-bend", "name": "Sheet Bend", "jobs": ["join"], "acts": ["Sailing", "Camping", "Household"], "difficulty": 1, "brief": "The everyday knot for joining two ropes, including ropes of different thickness.", "security": "Moderate", "untie": "Easy"}, {"slug": "double-fishermans-knot", "name": "Double Fisherman\u2019s Knot", "jobs": ["join"], "acts": ["Climbing", "Fishing"], "difficulty": 2, "brief": "Each rope ties a double overhand round the other.", "security": "Very high", "untie": "Very hard"}, {"slug": "rolling-hitch", "name": "Rolling Hitch", "jobs": ["grip", "attach"], "acts": ["Sailing", "Camping"], "difficulty": 2, "brief": "A hitch that holds against a pull along a pole or another rope, not just across it.", "security": "High one way", "untie": "Easy"}, {"slug": "round-turn-two-half-hitches", "name": "Round Turn and Two Half Hitches", "jobs": ["attach"], "acts": ["Sailing", "Camping", "Household"], "difficulty": 1, "brief": "A round turn on a ring or post takes the load while you finish with two half hitches round the standing part.", "security": "High", "untie": "Easy"}, {"slug": "prusik-knot", "name": "Prusik Knot", "jobs": ["grip"], "acts": ["Climbing"], "difficulty": 2, "brief": "A loop of thinner cord wrapped round a rope.", "security": "Grips when loaded", "untie": "Easy"}, {"slug": "bowline", "name": "Bowline", "jobs": ["loop"], "acts": ["Sailing", "Camping"], "difficulty": 1, "brief": "The classic fixed loop.", "security": "Moderate", "untie": "Easy"}, {"slug": "figure-eight-loop", "name": "Figure-Eight Loop", "jobs": ["loop"], "acts": ["Climbing"], "difficulty": 1, "brief": "A Figure-Eight Knot tied in a doubled rope.", "security": "Very high", "untie": "Hard"}]</script>
+</main>
+<footer class="foot">
+  <p>Knot Atlas. Every drawing is generated from a 3D rope model; every word is written for this guide.</p>
+  <p><a href="../about/index.html">Method, safety and credits</a></p>
+</footer>
+<script src="../assets/finder.js"></script>
+</body>
+</html>

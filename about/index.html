@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>About | Knot Atlas</title>
+<meta name="description" content="How Knot Atlas models knots, checks them, and what the drawings show.">
+<link rel="canonical" href="https://followorbounce.github.io/knots/about/">
+<meta property="og:title" content="About | Knot Atlas">
+<meta property="og:description" content="How Knot Atlas models knots, checks them, and what the drawings show.">
+<meta name="theme-color" content="#172326">
+<link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "bba4e16a7d9b4d9985eda0cda2624e60"}'></script>
+</head>
+<body class="p-about">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <a class="brand" href="../index.html"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="../assets/icon.svg#mark"/></svg><span>Knot Atlas</span></a>
+  <nav aria-label="Main">
+    <a href="../index.html">Knots</a>
+    <a href="../finder/index.html">Finder</a>
+    <a href="../basics/index.html">Basics</a>
+    <a href="../about/index.html" aria-current="page">About</a>
+  </nav>
+</header>
+<main id="main">
+
+<section class="page-head prose">
+  <p class="eyebrow">About</p>
+  <h1>How this guide is made</h1>
+  <p class="lede">Knot Atlas teaches 12 knots so far, each one drawn from a 3D model of the rope rather than from photographs.</p>
+</section>
+<section class="prose">
+  <h2>The rope models</h2>
+  <p>Each knot is described as one or more ropes: a smooth centreline through a set of control points, with a rope thickness. Knots tied in the flat are described as a drawing plus a code that says, at each crossing, which strand goes over. Knots tied round a post, a ring or another rope are modelled directly in 3D.</p>
+  <p>Before a knot is published a checker runs on the model. It confirms that no part of the rope passes through another part, through another rope, or through the post or ring, and that the number of crossings matches the knot’s code. The step-by-step view reveals the rope in the order you tie it, and the over and under tags are read from the model at each crossing the moving end makes.</p>
+  <h2>What the drawings show</h2>
+  <p>The models show knots loosely, so you can see the path of the rope. A real knot drawn tight looks more compact. Mirror shows the mirror-image knot, which is the same knot tied with the other hand. Every flat diagram is a projection of the same model.</p>
+  <h2>Safety</h2>
+  <p>Knots used to hold people need training. Learn life-safety knots from a qualified instructor, and have a partner check every one before it is loaded. Nothing on this site replaces training, manufacturer instructions or local rules for climbing, rescue, lifting or boating.</p>
+  <h2>Credits</h2>
+  <p>3D rendering uses <a href="https://threejs.org/">three.js</a>. Type is set in Barlow Condensed and IBM Plex. Knot names are the common names used by sailors, climbers and anglers; where a knot has several names, the others are listed under its title.</p>
+</section>
+</main>
+<footer class="foot">
+  <p>Knot Atlas. Every drawing is generated from a 3D rope model; every word is written for this guide.</p>
+  <p><a href="../about/index.html">Method, safety and credits</a></p>
+</footer>
+
+</body>
+</html>
