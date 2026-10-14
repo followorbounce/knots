@@ -247,3 +247,7 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
   .view2d { display: grid !important; }
   .bench { grid-template-columns: 1fr; }
 }
+
+.term { text-decoration: underline dotted; text-underline-offset: 3px; color: inherit; }
+.acts { align-items: center; font: 500 12px var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); gap: 8px; }
+.acts .chip { text-transform: none; letter-spacing: 0; font-size: 13px; padding: 9px 11px; }

@@ -159,6 +159,76 @@ def apply_code(ropes, code):
     return out
 
 
+def ensure_gaps(ropes, r=R, passes=5):
+    """Where two strands cross with too little height between them, push them
+    apart (keeping which one is on top). A crossing with no clear order is left
+    for the checker to report."""
+    ropes = [P.copy() for P in ropes]
+    need = 2 * r * 1.06
+    for _ in range(passes):
+        cr = find_crossings(ropes)
+        bumps = [[] for _ in ropes]
+        for c in cr:
+            gap = c['za'] - c['zb']
+            if abs(gap) >= need or abs(gap) < 0.02:
+                continue
+            push = (need - abs(gap)) / 2 + 0.01
+            sa = 1 if gap > 0 else -1
+            bumps[c['ra']].append((c['ia'], sa * push))
+            bumps[c['rb']].append((c['ib'], -sa * push))
+        if not any(bumps):
+            break
+        for k, bl in enumerate(bumps):
+            if not bl:
+                continue
+            idx = np.arange(len(ropes[k]))[:, None]
+            f = np.array([b[0] for b in bl])[None, :]
+            v = np.array([b[1] for b in bl])[None, :]
+            sig = 3.0 * R / DS
+            ropes[k][:, 2] += (v * np.exp(-((idx - f) / sig) ** 2)).sum(axis=1)
+    return ropes
+
+
+def repel(ropes, r=R, passes=6, closed=None):
+    """Push apart rope sections that pass closer than one rope width without
+    crossing (small corrections only; a large clash is left for the checker)."""
+    need = 2 * r * 1.02
+    skip = int(math.ceil(4 * r / DS))
+    for _ in range(passes):
+        disp = [np.zeros_like(P) for P in ropes]
+        hit = False
+        for k in range(len(ropes)):
+            for l in range(k, len(ropes)):
+                A, B = ropes[k], ropes[l]
+                D = A[:, None, :] - B[None, :, :]
+                dist = np.linalg.norm(D, axis=2)
+                if k == l:
+                    ii, jj = np.indices(dist.shape)
+                    dist[np.abs(ii - jj) <= skip] = 9
+                bad = np.argwhere((dist < need) & (dist > need - 0.12))
+                for i, j in bad:
+                    if k == l and j <= i:
+                        continue
+                    dv = D[i, j] / max(dist[i, j], 1e-6)
+                    push = (need - dist[i, j]) * 0.9
+                    disp[k][i] += dv * push
+                    disp[l][j] -= dv * push
+                    hit = True
+        if not hit:
+            break
+        for k, P in enumerate(ropes):
+            dk = disp[k]
+            if not dk.any():
+                continue
+            # smooth the displacement along the rope so the tube stays fair
+            w = np.exp(-(np.arange(-12, 13) / 5.0) ** 2)
+            w /= w.sum()
+            sm = np.column_stack([np.convolve(dk[:, c], w, mode='same') for c in range(3)])
+            sm[0] = sm[-1] = 0
+            ropes[k] = P + sm
+    return ropes
+
+
 def _smooth(t):
     t = min(1.0, max(0.0, t))
     return t * t * (3 - 2 * t)
@@ -245,6 +315,11 @@ def build(knot):
         ctrl_s.append(ctrl_arc_positions(rope['pts']))
     if knot.get('code') is not None:
         ropes = apply_code(ropes, knot['code'])
+    if knot.get('relax', True):
+        for _ in range(3):
+            ropes = ensure_gaps(ropes, r)
+            ropes = repel(ropes, r)
+        ropes = ensure_gaps(ropes, r)
     cr = find_crossings(ropes)
     for c in cr:
         c['a_over'] = bool(c['za'] > c['zb'])
@@ -481,3 +556,154 @@ def export(knot, built):
                       'tighten': bool(st.get('tighten'))})
     return {'r': built['r'], 'ropes': ropes, 'objects': knot.get('objects', []), 'steps': steps,
             'view': knot.get('view', {})}
+
+
+# ---------------------------------------------------------------- knot-type check (Jones polynomial)
+#
+# Close the rope(s) into one loop through the outside of the drawing, read the
+# planar diagram, and compute the Jones polynomial with the Kauffman bracket.
+# A knot model can then be checked against the knot it is meant to be:
+# overhand = trefoil, figure-eight = 4_1, square knot = trefoil # mirror trefoil.
+
+def _closed_passages(ropes, order):
+    """order: [(rope, +1|-1), ...] traversal; returns list of passages and crossing info."""
+    cr = find_crossings(ropes)
+    seq = []
+    for idx, (k, d) in enumerate(order):
+        n = len(ropes[k]) - 1
+        mine = []
+        for ci, c in enumerate(cr):
+            if c['ra'] == k:
+                mine.append((c['ia'], ci, 'a'))
+            if c['rb'] == k:
+                mine.append((c['ib'], ci, 'b'))
+        mine.sort(key=lambda m: m[0] if d > 0 else n - m[0])
+        for f, ci, side in mine:
+            P = ropes[k]
+            i = int(min(max(0, math.floor(f)), n - 1))
+            t = (P[i + 1, :2] - P[i, :2]) * d
+            seq.append((ci, side, t / (np.linalg.norm(t) + 1e-12)))
+    return cr, seq
+
+
+def jones(ropes, order):
+    """Jones polynomial of the closure, as {power of t (x4, so integers): coeff}.
+    Uses the Kauffman bracket over all states; fine up to ~18 crossings."""
+    cr, seq = _closed_passages(ropes, order)
+    n = len(cr)
+    if n == 0:
+        return {0: 1}
+    m = len(seq)
+    pos = {}
+    for p, (ci, side, t) in enumerate(seq):
+        pos.setdefault(ci, {})[side] = (p, t)
+    X = []
+    writhe = 0
+    for ci, c in enumerate(cr):
+        a_over = c['za'] > c['zb']
+        over_side, under_side = ('a', 'b') if a_over else ('b', 'a')
+        pu, tu = pos[ci][under_side]
+        po, to = pos[ci][over_side]
+        a_in, c_out = (pu - 1) % m, pu
+        o_in, o_out = (po - 1) % m, po
+        # counterclockwise from the incoming under edge (direction -tu)
+        cross = (-tu[0]) * to[1] - (-tu[1]) * to[0]
+        if cross > 0:
+            X.append((a_in, o_out, c_out, o_in))
+        else:
+            X.append((a_in, o_in, c_out, o_out))
+        # sign: over direction rotated to under direction
+        s = to[0] * tu[1] - to[1] * tu[0]
+        writhe += 1 if s > 0 else -1
+    # bracket as dict power(A) -> coeff
+    from itertools import product
+    bracket = {}
+    for state in product((0, 1), repeat=n):
+        parent = list(range(m))
+
+        def find(x):
+            while parent[x] != x:
+                parent[x] = parent[parent[x]]
+                x = parent[x]
+            return x
+
+        def union(x, y):
+            parent[find(x)] = find(y)
+        na = 0
+        for (a, b, c, d), s in zip(X, state):
+            if s == 0:
+                union(a, b); union(c, d); na += 1
+            else:
+                union(a, d); union(b, c)
+        loops = len({find(x) for x in range(m)})
+        # A^(na - nb) * (-A^2 - A^-2)^(loops-1)
+        poly = {na - (n - na): 1}
+        for _ in range(loops - 1):
+            nxt = {}
+            for e, v in poly.items():
+                nxt[e + 2] = nxt.get(e + 2, 0) - v
+                nxt[e - 2] = nxt.get(e - 2, 0) - v
+            poly = nxt
+        for e, v in poly.items():
+            bracket[e] = bracket.get(e, 0) + v
+    # V(t) = (-A^3)^(-w) <K>, A = t^(-1/4): A^e -> t^(-e/4); keep exponent of t*4
+    sign = -1 if writhe % 2 else 1
+    out = {}
+    for e, v in bracket.items():
+        if v:
+            k = -(e - 3 * writhe)
+            out[k] = out.get(k, 0) + v * sign
+    return {k: v for k, v in out.items() if v}
+
+
+def jones_str(V):
+    return ' '.join('%+d t^%s' % (v, k / 4 if k % 4 else k // 4) for k, v in sorted(V.items()))
+
+
+def jones_mirror(V):
+    return {-k: v for k, v in V.items()}
+
+
+def jones_mul(V, W):
+    out = {}
+    for a, x in V.items():
+        for b, y in W.items():
+            out[a + b] = out.get(a + b, 0) + x * y
+    return {k: v for k, v in out.items() if v}
+
+
+def jones_det(V):
+    """Knot determinant |V(-1)|."""
+    tot = 0
+    for k, v in V.items():
+        e = k / 4
+        tot += v * (-1) ** int(e) if float(e).is_integer() else 0
+    return abs(tot)
+
+
+# Reference Jones polynomials (keys are 4 x the power of t). Torus knots T(2,n)
+# use V = t^((n-1)/2) (1 + t^2 - t^3 + t^4 - ... - t^n); others are standard tables.
+def _torus2(n):
+    h = (n - 1) // 2
+    V = {4 * h: 1, 4 * (h + 2): 1}
+    for k in range(3, n + 1):
+        V[4 * (h + k)] = V.get(4 * (h + k), 0) + (-1 if k % 2 else 1)
+    return V
+
+
+KNOWN = {
+    'unknot': {0: 1},
+    '3_1': _torus2(3),
+    '4_1': {-8: 1, -4: -1, 0: 1, 4: -1, 8: 1},
+    '5_1': _torus2(5),
+    '6_1': {-16: 1, -12: -1, -8: 1, -4: -2, 0: 2, 4: -1, 8: 1},
+    '7_1': _torus2(7),
+    '9_1': _torus2(9),
+}
+KNOWN['square'] = jones_mul(KNOWN['3_1'], jones_mirror(KNOWN['3_1']))
+KNOWN['granny'] = jones_mul(KNOWN['3_1'], KNOWN['3_1'])
+
+
+def knot_type_ok(V, name):
+    ref = KNOWN[name]
+    return V == ref or V == jones_mirror(ref)

@@ -13,6 +13,7 @@
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   var ROPE = { a: 0xd39a2c, b: 0x2f7f8a, c: 0xb5523a };
+  function col(hex) { return new THREE.Color(hex).convertSRGBToLinear(); }
   var state = { pos: N - 1, target: N - 1, playing: false, mirror: false, flat: false, settledAt: 0 };
   var gl = null;
 
@@ -66,11 +67,11 @@
       var geo = new T.TubeGeometry(curve, segs, r, 12, false);
       var t = tex.clone(); t.needsUpdate = true;
       t.repeat.set(curve.getLength() / (r * 6), 1);
-      var mat = new T.MeshStandardMaterial({ color: ROPE[rp.color] || ROPE.a, map: t, roughness: 0.78, metalness: 0, side: T.DoubleSide });
+      var mat = new T.MeshStandardMaterial({ color: col(ROPE[rp.color] || ROPE.a), map: t, roughness: 0.78, metalness: 0, side: T.DoubleSide });
       var mesh = new T.Mesh(geo, mat); group.add(mesh);
-      var capMat = new T.MeshStandardMaterial({ color: ROPE[rp.color] || ROPE.a, roughness: 0.8 });
+      var capMat = new T.MeshStandardMaterial({ color: col(ROPE[rp.color] || ROPE.a), roughness: 0.8 });
       var c0 = new T.Mesh(new T.SphereGeometry(r * 0.99, 16, 12), capMat); c0.position.copy(pts[0]); group.add(c0);
-      var c1 = new T.Mesh(new T.SphereGeometry(r * 1.05, 16, 12), new T.MeshStandardMaterial({ color: 0x1d2a2d, roughness: 0.6 }));
+      var c1 = new T.Mesh(new T.SphereGeometry(r * 1.05, 16, 12), new T.MeshStandardMaterial({ color: col(0x1d2a2d), roughness: 0.6 }));
       group.add(c1);
       return { mesh: mesh, curve: curve, segs: segs, c0: c0, c1: c1, last: pts[pts.length - 1] };
     });
@@ -78,12 +79,12 @@
       var m;
       if (ob.type === 'pole') {
         m = new T.Mesh(new T.CylinderGeometry(ob.radius, ob.radius, ob.len, 40, 1),
-          new T.MeshStandardMaterial({ color: 0xcfb07a, roughness: 0.85 }));
+          new T.MeshStandardMaterial({ color: col(0xcfb07a), roughness: 0.85 }));
         if (ob.axis === 'x') m.rotation.z = Math.PI / 2;
         if (ob.axis === 'z') m.rotation.x = Math.PI / 2;
       } else if (ob.type === 'ring') {
         m = new T.Mesh(new T.TorusGeometry(ob.radius, ob.tube, 20, 80),
-          new T.MeshStandardMaterial({ color: 0x9aa3a6, roughness: 0.35, metalness: 0.7 }));
+          new T.MeshStandardMaterial({ color: col(0x9aa3a6), roughness: 0.35, metalness: 0.7 }));
       }
       if (m) { m.position.set(ob.c[0], ob.c[1], ob.c[2]); group.add(m); }
     });
@@ -127,7 +128,7 @@
         rp.mesh.visible = n > 0; rp.c0.visible = n > 0;
         rp.c1.visible = n > 0;
         if (n > 0) rp.c1.position.copy(rp.curve.getPointAt(Math.min(1, n / rp.segs)));
-        rp.c1.material.color.setHex(n >= rp.segs ? (ROPE[D.ropes[k].color] || ROPE.a) : 0x1d2a2d);
+        rp.c1.material.color.copy(col(n >= rp.segs ? (ROPE[D.ropes[k].color] || ROPE.a) : 0x1d2a2d));
       });
       group.scale.x = state.mirror ? -1 : 1;
       controls.update();
@@ -185,7 +186,13 @@
   }
 
   stepBtns.forEach(function (b, k) {
-    b.addEventListener('click', function () { state.playing = false; $('play').textContent = 'Play'; go(k); });
+    b.addEventListener('click', function (e) {
+      if (e.target.closest('a')) return;
+      state.playing = false; $('play').textContent = 'Play'; go(k);
+    });
+    b.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); state.playing = false; $('play').textContent = 'Play'; go(k); }
+    });
   });
   scrub.addEventListener('input', function () {
     state.playing = false; $('play').textContent = 'Play';

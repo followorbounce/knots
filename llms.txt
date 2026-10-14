@@ -16,6 +16,22 @@ Interactive 3D guide to tying knots.
 - [Prusik Knot](https://followorbounce.github.io/knots/knots/prusik-knot/): A loop of thinner cord wrapped round a rope
 - [Bowline](https://followorbounce.github.io/knots/knots/bowline/): The classic fixed loop
 - [Figure-Eight Loop](https://followorbounce.github.io/knots/knots/figure-eight-loop/): A Figure-Eight Knot tied in a doubled rope
+- [Slipped Overhand Knot](https://followorbounce.github.io/knots/knots/slipped-overhand-knot/): An overhand knot finished with a bight instead of the end, so one pull on the short end releases it
+- [Double Overhand Knot](https://followorbounce.github.io/knots/knots/double-overhand-knot/): An overhand knot with one extra turn
+- [Multiple Overhand Knot](https://followorbounce.github.io/knots/knots/multiple-overhand-knot/): An overhand knot with four or more turns
+- [Slipped Figure-Eight Knot](https://followorbounce.github.io/knots/knots/slipped-figure-eight-knot/): A figure-eight finished with a bight, so a pull on the short end releases it
+- [Stevedore Knot](https://followorbounce.github.io/knots/knots/stevedore-knot/): A figure-eight with one more turn round the standing part
+- [Granny Knot](https://followorbounce.github.io/knots/knots/granny-knot/): The square knot tied wrong: both halves twisted the same way
+- [Thief Knot](https://followorbounce.github.io/knots/knots/thief-knot/): It looks almost exactly like a square knot, but the two short ends come out diagonally opposite each other
+- [Slipped Square Knot](https://followorbounce.github.io/knots/knots/slipped-square-knot/): A square knot with one end pulled through as a bight
+- [Bow Knot](https://followorbounce.github.io/knots/knots/bow-knot/): The knot on your shoes: a square knot with both ends slipped
+- [Overhand Loop](https://followorbounce.github.io/knots/knots/overhand-loop/): An overhand knot tied in a doubled rope
+- [Threaded Figure-Eight Loop](https://followorbounce.github.io/knots/knots/threaded-figure-eight-loop/): The Figure-Eight Loop tied round something you cannot drop a loop over, such as a harness, a tree or a ring: tie a single figure-eight, pass the end round, and trace it back through the knot.
+- [Englishman’s Loop](https://followorbounce.github.io/knots/knots/englishmans-loop/): A fixed loop made of two overhand knots, one in the end round the standing part and one in the standing part round the end
+- [Double Englishman’s Loop](https://followorbounce.github.io/knots/knots/double-englishmans-loop/): The Englishman’s Loop tied with double overhands
+- [Double Overhand Noose](https://followorbounce.github.io/knots/knots/double-overhand-noose/): A running loop held by a double overhand tied round the standing part
+- [Cow Hitch](https://followorbounce.github.io/knots/knots/cow-hitch/): A bight of rope dropped round a rail with both legs pulled through it
+- [Round Turn Bowline](https://followorbounce.github.io/knots/knots/round-turn-bowline/): A bowline with the small loop taken twice round
 
 ## Basics
 

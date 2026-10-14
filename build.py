@@ -99,6 +99,10 @@ def resolve_steps(k, g):
         elif 'f' in at:
             fr = g['fractions'][at['f']]
             show = {i: fr for i in range(len(g['ropes']))}
+        elif 'rf' in at:
+            r, fr = g['rope_fractions'][at['rf']]
+            show = {i: 'all' for i in range(r)}
+            show[r] = float(fr)
         else:
             for name in at:
                 r, i = marks[name]
@@ -116,6 +120,25 @@ def build_knot(k):
 
 
 DOTS = {1: 'Easy', 2: 'Intermediate', 3: 'Advanced'}
+
+GLOSS = [
+    ('standing part', 'The long, inactive part of the rope.'),
+    ('working end', 'The end you tie with.'),
+    ('round turn', 'The rope goes round an object twice, gripping it all the way round.'),
+    ('half hitch', 'A single turn round something, with the end passed under itself.'),
+    ('bight', 'The rope folded back on itself in a U, without crossing.'),
+]
+
+
+def gloss(text, up):
+    """Escape step text and link the first use of each glossary term."""
+    import re
+    out = E(text)
+    for term, tip in GLOSS:
+        pat = re.compile(r'\b(%s)\b' % re.escape(term), re.I)
+        out, n = pat.subn(lambda m: '<a class="term" href="%sbasics/terms/index.html" title="%s">%s</a>'
+                          % (up, E(tip), m.group(1)), out, count=1)
+    return out
 
 
 def difficulty(n):
@@ -139,7 +162,7 @@ def knot_page(k, knot, built, by_slug):
         i, '' if i == nsteps - 1 else ' hidden', knotlib.svg_diagram(knot, built, i, scale=56))
         for i in range(nsteps))
     steps_html = ''.join(
-        '<li><button type="button" class="step" data-i="%d"><b>%d</b><span>%s</span></button></li>' % (i, i + 1, E(s['text']))
+        '<li><div class="step" data-i="%d" role="button" tabindex="0"><b>%d</b><span>%s</span></div></li>' % (i, i + 1, gloss(s['text'], up))
         for i, s in enumerate(knot['steps']))
     related = []
     for slug, note in k['related']:
@@ -231,6 +254,7 @@ def index_page(items):
   <h1>Knot Atlas</h1>
   <p class="lede">Every knot here is a 3D rope you can turn in your hand and tie one step at a time. The over and under tags come from the model itself, so they always agree with the drawing.</p>
   <p class="hero-links"><a class="btn" href="finder/index.html">Find a knot for a job</a> <a class="btn ghost" href="basics/index.html">Start with the basics</a></p>
+  <p class="meta acts">Best knots for: {''.join('<a class="chip" href="for/%s/index.html">%s</a>' % (a.lower(), a) for a in ACTIVITIES if any(a in k['acts'] for k, _, _ in items))}</p>
 </section>
 <section class="catalogue" aria-labelledby="cat-h">
   <h2 id="cat-h" class="sr">All knots</h2>
@@ -307,6 +331,40 @@ def about_page(n):
                 body, nav='about', cls='p-about')
 
 
+ACT_INTRO = {
+    'Sailing': 'Boats run on a handful of knots: stoppers for sheet ends, hitches for fenders and moorings, a loop for almost everything else. These are the ones worth knowing without thinking.',
+    'Climbing': 'Climbing knots hold people, so they are chosen for security and for how easy they are to check by eye. Learn them from an instructor; use this page to revise.',
+    'Camping': 'Tarps, guy lines, bundles and washing lines. Knots that are quick to tie with cold hands and quick to undo when you pack up.',
+    'Fishing': 'Line is thin and slippery, so fishing knots use extra turns for grip. Wet the line before you pull a knot tight.',
+    'Household': 'Parcels, bags, washing lines, tie-downs and shoelaces. The everyday knots that save string and temper.',
+    'Gardening': 'Tying plants to stakes, bundling canes and fixing nets. Knots that grip without slipping and are easy to cut away.',
+    'Horses': 'Tying to rings and rails where a quick release matters. Follow your yard\u2019s rules for tying animals.',
+    'Gifts': 'Decorative and finishing knots for ribbons, cords and handmade presents.',
+}
+
+
+def activity_pages(items):
+    paths = []
+    for act in ACTIVITIES:
+        ks = [(k, n, b) for k, n, b in items if act in k['acts']]
+        if not ks:
+            continue
+        ks.sort(key=lambda t: (t[0]['difficulty'], t[0]['name']))
+        cards = ''.join('''<li class="card"><a href="../../knots/%s/index.html"><div class="thumb">%s</div>
+  <span class="eyebrow">%s</span><h3>%s</h3><p>%s</p><span class="dots-line">%s</span></a></li>''' % (
+            k['slug'], thumb(n, b), E(CHAPTERS[k['chapter']][0]), E(k['name']), E(k['brief'].split('. ')[0] + '.'),
+            difficulty(k['difficulty'])) for k, n, b in ks)
+        others = ''.join('<a class="chip" href="../%s/index.html">%s</a>' % (a.lower(), a) for a in ACTIVITIES if a != act and any(a in k['acts'] for k, _, _ in items))
+        body = f'''
+<section class="page-head"><p class="eyebrow">Best knots for</p><h1>{E(act)}</h1>
+<p class="lede">{E(ACT_INTRO[act])}</p></section>
+<ul class="grid">{cards}</ul>
+<section class="related"><h2>Other activities</h2><div class="meta">{others}</div></section>'''
+        paths.append(page('for/%s/index.html' % act.lower(), '%s knots | Knot Atlas' % act,
+                          'The most useful knots for %s, easiest first.' % act.lower(), body, nav='knots', cls='p-for'))
+    return paths
+
+
 def write_meta(paths):
     urls = ''.join('<url><loc>%s%s</loc></url>' % (SITE, p[:-len('index.html')] if p.endswith('index.html') else p) for p in paths)
     open(os.path.join(ROOT, 'sitemap.xml'), 'w').write(
@@ -324,9 +382,17 @@ def main():
     items, bad = [], False
     for k in KNOTS:
         knot, built = build_knot(k)
-        status = 'ok' if not built['problems'] else '; '.join(built['problems'])
-        print('%-34s %3d crossings  %s' % (k['slug'], len(built['crossings']), status))
-        bad = bad or bool(built['problems'])
+        probs = list(built['problems'])
+        kt = ''
+        if k.get('expect'):
+            V = knotlib.jones(built['ropes'], knot.get('closure', [(0, 1)]))
+            if knotlib.knot_type_ok(V, k['expect']):
+                kt = 'type %s ok' % k['expect']
+            else:
+                probs.append('knot type is not %s (Jones %s)' % (k['expect'], knotlib.jones_str(V)))
+        status = 'ok' if not probs else '; '.join(probs)
+        print('%-34s %3d crossings  %s %s' % (k['slug'], len(built['crossings']), status, kt))
+        bad = bad or bool(probs)
         items.append((k, knot, built))
     if check_only:
         sys.exit(1 if bad else 0)
@@ -335,6 +401,7 @@ def main():
     for k, knot, built in items:
         paths.append(knot_page(k, knot, built, by_slug))
     paths += basics.build(page)
+    paths += activity_pages(items)
     write_meta(paths)
     print('wrote %d pages' % len(paths))
     if bad:
