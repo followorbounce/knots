@@ -53,6 +53,23 @@
   elevation via `view: {elev}`. Steps can reveal per-strand fractions (`fl`).
 - Build is slow (~4 min): flat braid 7 and multiple overhand dominate.
 
+## 2026-10-13: Wave 5 (5 more, 58 total) + homepage widget
+- Splices built with a cylinder-weave engine (`_cyl_weave`): strands drawn on an
+  unrolled rope surface, crossings found on an annulus picture of the cylinder,
+  tucked stretches go over-under-over the lay strands (lay strands lift where a
+  tuck goes under). Back Splice (crown + 3 rounds), Eye Splice (laid strands follow
+  a curved centreline with a rotation-minimising frame), Short Splice (two ropes
+  married, 60 tuck crossings, all resolved).
+- Whippings: knots can set their own cord radius (`'r': TW`), and poles can be
+  `'rope': True` (rope-textured objects). Common Whipping, Flat Seizing.
+- `feed/index.json` + `feed/<slug>.json`: compact centrelines + steps for the
+  "Knot of the day" widget on the followorbounce.github.io homepage
+  (engine/knot-of-day.* there). Keep the feed format stable: slug, name, chapter,
+  brief, difficulty, acts, r, ropes [{c, p}], objects, steps [{t, v}].
+
+## Still to do from wave 5
+French, Sailmaker's and Palm-and-Needle whippings; Tapering a Splice; Stitch and Seize.
+
 ## Still to do from wave 4
 Matthew Walker, Manrope and Diamond knots; Ocean-Braid and Oval mats; Chain
 Sennit; Four-Strand Round, Eight-Strand Square, Round Crown, Six-Strand Round

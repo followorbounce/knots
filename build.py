@@ -273,8 +273,7 @@ def index_page(items):
 </section>
 <section class="upcoming">
   <h2>Being drawn now</h2>
-  <p>The guide grows chapter by chapter. Next come more stoppers, binding knots, bends, hitches and loops, then:</p>
-  <ul>{upcoming}</ul>
+  <p>Every chapter is open. More knots are being added to each: more stoppers, bends, hitches and loops, sennits, mats and whippings.</p>
 </section>
 '''
     return page('index.html', 'Knot Atlas: interactive 3D knot guide',
@@ -368,6 +367,33 @@ def activity_pages(items):
     return paths
 
 
+def write_feed(items):
+    """Compact data for the 'knot of the day' widget on the followorbounce homepage:
+    feed/index.json (the list) and feed/<slug>.json (centrelines + steps)."""
+    os.makedirs(os.path.join(ROOT, 'feed'), exist_ok=True)
+    index = []
+    for k, knot, built in items:
+        ropes = []
+        for i, P in enumerate(built['ropes']):
+            Q = P[::3] if len(P) > 3 else P
+            if len(P) > 3 and (len(P) - 1) % 3:
+                import numpy as np
+                Q = np.vstack([Q, P[-1:]])
+            ropes.append({'c': knot['ropes'][i].get('color', 'a'), 'p': [round(float(v), 2) for v in Q.reshape(-1)]})
+        obs = []
+        for ob in knot.get('objects', []):
+            o = {kk: ob[kk] for kk in ('type', 'axis', 'c', 'radius', 'len', 'tube', 'a0', 'a1', 'metal', 'rope') if kk in ob}
+            obs.append(o)
+        data = {'slug': k['slug'], 'name': k['name'], 'chapter': CHAPTERS[k['chapter']][0], 'brief': k['brief'],
+                'difficulty': k['difficulty'], 'acts': k['acts'], 'r': built['r'], 'ropes': ropes, 'objects': obs,
+                'steps': [{'t': st['text'], 'v': [round(v, 4) for v in bst['vis']]} for st, bst in zip(knot['steps'], built['steps'])]}
+        with open(os.path.join(ROOT, 'feed', k['slug'] + '.json'), 'w') as f:
+            json.dump(data, f, separators=(',', ':'))
+        index.append({'slug': k['slug'], 'name': k['name'], 'chapter': CHAPTERS[k['chapter']][0]})
+    with open(os.path.join(ROOT, 'feed', 'index.json'), 'w') as f:
+        json.dump({'knots': index}, f, separators=(',', ':'))
+
+
 def write_meta(paths):
     urls = ''.join('<url><loc>%s%s</loc></url>' % (SITE, p[:-len('index.html')] if p.endswith('index.html') else p) for p in paths)
     open(os.path.join(ROOT, 'sitemap.xml'), 'w').write(
@@ -416,6 +442,7 @@ def main():
         paths.append(knot_page(k, knot, built, by_slug))
     paths += basics.build(page)
     paths += activity_pages(items)
+    write_feed(items)
     write_meta(paths)
     print('wrote %d pages' % len(paths))
     if bad:

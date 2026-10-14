@@ -96,6 +96,7 @@ select, input[type="search"] {
 .obj-pole { fill: var(--wood); stroke: var(--wood-edge); stroke-width: 1.5; }
 .obj-ring { stroke: var(--metal); }
 .obj-pole.thin { fill: var(--metal); stroke: none; }
+.obj-pole.rope { fill: #e7c88a; stroke: #8a6a2c; }
 .tg-over rect, .tg-over path { fill: var(--over); }
 .tg-under rect, .tg-under path { fill: var(--under); }
 .tg-over text, .tg-under text { fill: #fff; font: 600 11px var(--f-mono); text-anchor: middle; letter-spacing: .06em; }

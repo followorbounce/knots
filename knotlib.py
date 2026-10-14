@@ -193,7 +193,7 @@ def repel(ropes, r=R, passes=6, closed=None):
     """Push apart rope sections that pass closer than one rope width without
     crossing (small corrections only; a large clash is left for the checker)."""
     need = 2 * r * 1.02
-    skip = int(math.ceil(4 * r / DS))
+    skip = int(math.ceil(max(4 * r, 0.3) / DS))
     for _ in range(passes):
         disp = [np.zeros_like(P) for P in ropes]
         hit = False
@@ -401,7 +401,7 @@ def build(knot):
     if worst[0] < 2 * r * 0.93:
         problems.append('rope clearance %.3f < %.3f near %s' % (worst[0], 2 * r, np.round(worst[1], 2).tolist()))
     for ob in knot.get('objects', []):
-        d, where = object_clearance(ropes, ob)
+        d, where = object_clearance(ropes, ob, r)
         if d < -0.02:
             problems.append('%s overlap %.3f near %s' % (ob['type'], d, np.round(where, 2).tolist()))
     return {'ropes': ropes, 'crossings': cr, 'steps': steps, 'problems': problems, 'r': r}
@@ -435,7 +435,7 @@ def min_clearance(ropes, r, closed=None, joined=False):
     return best
 
 
-def object_clearance(ropes, ob):
+def object_clearance(ropes, ob, r=R):
     """Distance from rope surface to object surface (positive = clear)."""
     best = (1e9, None)
     for P in ropes:
@@ -444,14 +444,14 @@ def object_clearance(ropes, ob):
             ax = {'x': 0, 'y': 1, 'z': 2}[ob['axis']]
             Q = P - c
             Q[:, ax] = 0
-            d = np.linalg.norm(Q, axis=1) - ob['radius'] - R
+            d = np.linalg.norm(Q, axis=1) - ob['radius'] - r
             inside = np.abs(P[:, ax] - c[ax]) < ob['len'] / 2
             d = np.where(inside, d, 1e9)
         elif ob['type'] in ('ring', 'arc'):
             c = np.array(ob['c'], float)
             Q = P - c
             rho = np.hypot(Q[:, 0], Q[:, 1])
-            d = np.hypot(rho - ob['radius'], Q[:, 2]) - ob['tube'] - R
+            d = np.hypot(rho - ob['radius'], Q[:, 2]) - ob['tube'] - r
             if ob['type'] == 'arc':
                 ang = np.mod(np.arctan2(Q[:, 1], Q[:, 0]), 2 * np.pi)
                 a0, a1 = ob['a0'] % (2 * np.pi), ob['a1'] % (2 * np.pi)
@@ -554,7 +554,7 @@ def _obj_svg(ob, X, Y, scale):
             x, y, w, h = X(c[0] - rad), Y(c[1] + L), 2 * rad * scale, 2 * L * scale
         else:
             x, y, w, h = X(c[0] - L), Y(c[1] + rad), 2 * L * scale, 2 * rad * scale
-        cls = 'obj-pole thin' if ob.get('metal') else 'obj-pole'
+        cls = 'obj-pole thin' if ob.get('metal') else ('obj-pole rope' if ob.get('rope') else 'obj-pole')
         return [(0.0, '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" class="%s"/>' % (x, y, w, h, cls))]
     if ob['type'] == 'ring':
         cx, cy = X(c[0]), Y(c[1])

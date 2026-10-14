@@ -1036,3 +1036,103 @@ W4 = [
     _braid(7, 'Seven-Strand Flat Braid', {}),
 ]
 KNOTS += W4
+
+W5 = [
+    {
+        'slug': 'back-splice', 'geo': 'back_splice', 'name': 'Back Splice', 'aka': ['End splice'],
+        'chapter': 'splice', 'jobs': [], 'acts': ['Sailing', 'Household'],
+        'difficulty': 2, 'security': 'Permanent', 'untie': 'No',
+        'brief': 'Finishes the end of a three-strand rope without whipping: the strands are crowned, then each is tucked back down '
+                 'the rope against the lay, over one strand and under the next.',
+        'uses': ['A permanent, chafe-proof end on a three-strand rope.', 'Rope ends that will be handled a lot, such as mooring lines.'],
+        'cautions': ['The end becomes thicker and will not pass through a tight block or fairlead.',
+                     'Make at least three full rounds of tucks; four in slippery synthetic rope.',
+                     'Tape or melt the strand ends before you start so they do not fray.'],
+        'untie_how': 'It is meant to be permanent. Cut it off if you need the end free.',
+        'related': [('crown-knot', 'The crown that starts it.'), ('eye-splice', 'The same tucks, making an eye.'),
+                    ('short-splice', 'The same tucks, joining two ropes.')],
+        'steps': [
+            ({'fl': 'unlaid'}, 'Unlay the end of the rope for about a hand-width and tape the strand ends.', {'notags': True}),
+            ({'fl': 'crowned'}, 'Crown the three strands so the ends point back down the rope.', {'notags': True}),
+            ({'fl': 'one'}, 'Tuck each strand in turn against the lay: over the strand next to it, under the one after.', {'notags': True}),
+            ({'fl': 'two'}, 'Make a second round of tucks the same way, pulling each strand snug.', {'notags': True}),
+            ('all', 'Make a third round. Roll the splice under your foot to even it out, and trim the ends.', {'notags': True}),
+        ],
+    },
+    {
+        'slug': 'eye-splice', 'geo': 'eye_splice', 'name': 'Eye Splice', 'aka': [],
+        'chapter': 'splice', 'jobs': ['loop'], 'acts': ['Sailing', 'Camping'],
+        'difficulty': 3, 'security': 'Permanent', 'untie': 'No',
+        'brief': 'A permanent eye in the end of a three-strand rope: the end is bent back and its strands are tucked into the '
+                 'standing part, against the lay. Much stronger than any knotted loop.',
+        'uses': ['Mooring and anchor lines.', 'A permanent loop round a thimble, for shackling to a chain or fitting.',
+                 'Any eye that will stay in the rope for good.'],
+        'cautions': ['The first tuck sets the splice. Make sure each strand goes under a different strand of the standing part.',
+                     'Use at least three rounds of tucks in natural rope, four or five in synthetic.',
+                     'Fit a thimble if the eye will bear on metal.'],
+        'untie_how': 'It does not come undone. Cut the rope if you need it back.',
+        'related': [('back-splice', 'The same tucks finishing an end.'), ('bowline', 'A knotted loop you can untie.'),
+                    ('figure-eight-loop', 'A secure knotted loop.')],
+        'steps': [
+            ({'fl': 'eye'}, 'Unlay the end and bend it back to make the eye the size you want.', {'notags': True}),
+            ({'fl': 'first'}, 'Tuck the middle strand under one strand of the standing part, against the lay. The other two go under the next strands round, one from each side.', {'notags': True}),
+            ({'fl': 'one'}, 'Continue each strand over one, under one, down the standing part.', {'notags': True}),
+            ('all', 'Make at least three full rounds of tucks, then roll the splice to even it and trim the ends.', {'notags': True}),
+        ],
+    },
+    {
+        'slug': 'short-splice', 'geo': 'short_splice', 'name': 'Short Splice', 'aka': [],
+        'chapter': 'splice', 'jobs': ['join'], 'acts': ['Sailing', 'Household'],
+        'difficulty': 3, 'security': 'Permanent', 'untie': 'No',
+        'brief': 'Joins two three-strand ropes end to end: the ends are married so their strands interlock, then each rope’s '
+                 'strands are tucked into the other rope against the lay. Stronger than any bend.',
+        'uses': ['A permanent join in three-strand rope.', 'Making an endless strop or grommet from one rope.'],
+        'cautions': ['The splice is about twice the rope’s thickness and will not run through a block made for the rope.',
+                     'Use rope of the same size and lay on both sides.'],
+        'untie_how': 'It is permanent; cut it out if you must.',
+        'related': [('eye-splice', 'The same tucks making an eye.'), ('double-fishermans-knot', 'A knotted join.'),
+                    ('carrick-bend', 'A knotted join for heavy rope.')],
+        'steps': [
+            ({'fl': 'meet'}, 'Unlay both ends and push them together so each strand lies between two strands of the other rope.', {'notags': True}),
+            ({'fl': 'yellow'}, 'Tuck the yellow rope’s strands into the blue rope, against the lay, over one and under one.', {'notags': True}),
+            ('all', 'Turn the work round and tuck the blue strands into the yellow rope the same way.', {'notags': True}),
+            ('all', 'Make three rounds of tucks each side, roll the splice even and trim.', {'tighten': True, 'notags': True}),
+        ],
+    },
+    {
+        'slug': 'common-whipping', 'geo': 'common_whipping', 'name': 'Common Whipping', 'aka': ['Plain whipping'],
+        'chapter': 'splice', 'jobs': [], 'acts': ['Sailing', 'Household', 'Camping'],
+        'difficulty': 1, 'security': 'Good', 'untie': 'Cut',
+        'brief': 'Turns of thin twine bound round a rope end to stop it unravelling. Both ends of the twine are buried under the turns.',
+        'uses': ['Finishing any rope end that cannot be heat-sealed, such as natural fibre rope.', 'Marking a point on a rope.'],
+        'cautions': ['Use strong twine and pull every turn tight.', 'Make the whipping about as long as the rope is thick.',
+                     'For a rope end under heavy use, a sailmaker’s whipping lasts longer.'],
+        'untie_how': 'Cut through the turns with a knife.',
+        'related': [('back-splice', 'Finishes the end without twine.'), ('seizing', 'Binds two parts of rope together.')],
+        'steps': [
+            ('bight', 'Lay a bight of twine along the rope, with the loop pointing to the end of the rope.'),
+            ('turns', 'Wrap the twine round the rope and over the bight, working toward the end. Pull each turn tight.', {'notags': True}),
+            ('end', 'Pass the end through the loop of the bight.'),
+            ('end', 'Pull the other end of the twine to draw the loop and the end under the turns. Trim both ends.', {'tighten': True}),
+        ],
+    },
+    {
+        'slug': 'seizing', 'geo': 'seizing', 'name': 'Flat Seizing', 'aka': ['Seizing'],
+        'chapter': 'splice', 'jobs': ['bind'], 'acts': ['Sailing'],
+        'difficulty': 2, 'security': 'High', 'untie': 'Cut',
+        'brief': 'Binds two parts of rope side by side with twine: tight turns round both, then frapping turns between them to draw '
+                 'the turns tight. It makes a temporary eye, or holds an end back against its standing part.',
+        'uses': ['A seized eye in the end of a rope.', 'Holding the tail of a knot against its standing part.',
+                 'Binding two lines together where a knot would be too bulky.'],
+        'cautions': ['Keep the turns flat and side by side; crossed turns slip.', 'Pull the frapping turns hard; they are what hold it.'],
+        'untie_how': 'Cut the twine.',
+        'related': [('common-whipping', 'Binds one rope end.'), ('sheer-lashing', 'The same idea with rope and poles.')],
+        'steps': [
+            ('start', 'Lay the end of the twine in the groove between the two ropes.', {'notags': True}),
+            ('turns', 'Wrap tight turns round both ropes, over the end, side by side.', {'notags': True}),
+            ('frap', 'Take two frapping turns between the ropes, round all the turns, and pull them hard.', {'notags': True}),
+            ('end', 'Finish the end off and trim it.', {'notags': True}),
+        ],
+    },
+]
+KNOTS += W5

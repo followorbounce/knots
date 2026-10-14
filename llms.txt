@@ -57,6 +57,11 @@ Interactive 3D guide to tying knots.
 - [Five-Strand Flat Braid](https://followorbounce.github.io/knots/knots/flat-braid-5/): A flat braid of 5 strands
 - [Six-Strand Flat Braid](https://followorbounce.github.io/knots/knots/flat-braid-6/): A flat braid of 6 strands
 - [Seven-Strand Flat Braid](https://followorbounce.github.io/knots/knots/flat-braid-7/): A flat braid of 7 strands
+- [Back Splice](https://followorbounce.github.io/knots/knots/back-splice/): Finishes the end of a three-strand rope without whipping: the strands are crowned, then each is tucked back down the rope against the lay, over one strand and under the next.
+- [Eye Splice](https://followorbounce.github.io/knots/knots/eye-splice/): A permanent eye in the end of a three-strand rope: the end is bent back and its strands are tucked into the standing part, against the lay
+- [Short Splice](https://followorbounce.github.io/knots/knots/short-splice/): Joins two three-strand ropes end to end: the ends are married so their strands interlock, then each rope’s strands are tucked into the other rope against the lay
+- [Common Whipping](https://followorbounce.github.io/knots/knots/common-whipping/): Turns of thin twine bound round a rope end to stop it unravelling
+- [Flat Seizing](https://followorbounce.github.io/knots/knots/seizing/): Binds two parts of rope side by side with twine: tight turns round both, then frapping turns between them to draw the turns tight
 
 ## Basics
 

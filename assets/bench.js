@@ -91,6 +91,10 @@
           new T.MeshStandardMaterial({ color: col(0x9aa3a6), roughness: 0.35, metalness: 0.7 }));
         m.rotation.z = a0;
       }
+      if (m && ob.rope) {
+        var rt = tex.clone(); rt.needsUpdate = true; rt.repeat.set(ob.len / (ob.radius * 1.4), 3);
+        m.material = new T.MeshStandardMaterial({ color: col(0xe2bf7e), map: rt, roughness: 0.85 });
+      }
       if (m && ob.metal) m.material = new T.MeshStandardMaterial({ color: col(0x9aa3a6), roughness: 0.35, metalness: 0.7 });
       if (m) { m.position.set(ob.c[0], ob.c[1], ob.c[2]); group.add(m); }
     });

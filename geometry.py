@@ -1422,3 +1422,289 @@ def carrick_mat():
             'code': None, 'objects': [], 'jones_ropes': [Q], 'closure': [(0, 1)], 'alternating': ok, 'ncross': n,
             'fraction_lists': {'half': [0.5, 0.0], 'first': [1.0, 0.0], 'second': [1.0, 0.5]},
             'marks': {'end': (0, len(a) - 1)}}
+
+
+# ------------------------------------------------------------------ wave 5: splices and whippings
+
+RC = 0.19                     # radius of the strand centres in a laid three-strand rope
+PITCH = 1.9                   # length of one full turn of the lay (right-hand lay)
+
+
+def _cyl_weave(parts, r_ann=8.0, first_over=True):
+    """Strands on a rope's surface in unrolled form: parts = [{theta, y, base, kind}],
+    kind an array of 'lay' / 'tuck' per sample. Crossings are found on an annulus
+    drawing (radius r_ann + y, angle theta), a faithful flat picture of the
+    cylinder. Along each strand, its tucked stretches go over, under, over... the
+    lay strands they meet; where a tuck goes under, the lay strand is lifted."""
+    import numpy as np
+    from knotlib import find_crossings, z_profile
+    ann = [np.column_stack([(r_ann + p['y']) * np.cos(p['theta']), (r_ann + p['y']) * np.sin(p['theta']),
+                            np.zeros(len(p['y']))]) for p in parts]
+    cr = find_crossings(ann)
+    def kind(k, f):
+        return parts[k]['kind'][int(round(f))]
+    # number each strand's tuck passages in order along the strand
+    passes = [[] for _ in parts]
+    for ci, c in enumerate(cr):
+        ka, kb = kind(c['ra'], c['ia']), kind(c['rb'], c['ib'])
+        if ka == 'tuck' and kb == 'lay':
+            passes[c['ra']].append((c['ia'], ci))
+        if kb == 'tuck' and ka == 'lay':
+            passes[c['rb']].append((c['ib'], ci))
+    over_at = {}
+    for k, p in enumerate(passes):
+        for n_, (f, ci) in enumerate(sorted(p)):
+            over_at[(k, ci)] = (n_ % 2 == 0) == first_over
+    targets = [[] for _ in parts]
+    bad = 0
+    for ci, c in enumerate(cr):
+        if (c['ra'], ci) in over_at:
+            t, ti, l, li = c['ra'], c['ia'], c['rb'], c['ib']
+        elif (c['rb'], ci) in over_at:
+            t, ti, l, li = c['rb'], c['ib'], c['ra'], c['ia']
+        else:
+            bad += 1
+            continue
+        if over_at[(t, ci)]:
+            targets[t].append((ti, 0.14))
+        else:
+            targets[l].append((li, TUCK_BASE + 0.31 - RC))
+    out = []
+    for k, p in enumerate(parts):
+        off = z_profile(len(p['y']), targets[k], plateau=1.0 * R / 0.03, ramp=2.6 * R / 0.03)
+        rho = p['base'] + off
+        out.append(np.column_stack([rho * np.sin(p['theta']), p['y'], rho * np.cos(p['theta'])]))
+    return out, len(cr), bad
+
+
+def _lay(i, y0, y1, n=3, step=0.03):
+    import numpy as np
+    y = np.arange(y0, y1 + 1e-9, step)
+    th = 2 * math.pi * i / n + 2 * math.pi * y / PITCH
+    return th, y
+
+
+def _tuck(theta0, y0, y1, step=0.03, pitch=None):
+    """A strand tucked against the lay, running from y0 down to y1."""
+    import numpy as np
+    pitch = pitch or PITCH * 1.05
+    y = np.arange(y0, y1 - 1e-9, -step)
+    th = theta0 - 2 * math.pi * (y - y0) / pitch          # opposite hand to the lay
+    return th, y
+
+
+TUCK_BASE = RC + 0.17
+
+
+def back_splice():
+    """Crown the strands, then tuck each one back down the rope against the lay,
+    over one strand and under the next, three times."""
+    import numpy as np
+    n = 3
+    parts = []
+    for i in range(n):
+        th, y = _lay(i, -3.4, 0.0)
+        parts.append({'theta': th, 'y': y, 'base': np.full(len(y), RC), 'kind': ['lay'] * len(y)})
+    crowns, starts = [], []
+    for i in range(n):
+        th0 = 2 * math.pi * i / n
+        sweep = 2 * math.pi / n * 1.25
+        arc = []
+        m = 18
+        for k in range(1, m + 1):
+            t = k / m
+            a = th0 + sweep * t
+            r = RC + (0.62 - RC) * math.sin(math.pi * t) ** 0.7 + (TUCK_BASE - RC) * t
+            yy = 0.5 * math.sin(math.pi * t) - 0.12 * t
+            arc.append([r * math.sin(a), yy, r * math.cos(a)])
+        crowns.append(arc)
+        starts.append(th0 + sweep)
+    for i in range(n):
+        th, y = _tuck(starts[i], -0.18, -2.5)
+        parts.append({'theta': th, 'y': y, 'base': np.full(len(y), TUCK_BASE), 'kind': ['tuck'] * len(y)})
+    P3, ncross, bad = _cyl_weave(parts)
+    cols = ['a', 'b', 'c']
+    ropes = []
+    fl = {}
+    for i in range(n):
+        lay, tuck = P3[i], P3[n + i]
+        pts = lay[::3].tolist() + crowns[i] + tuck[::3].tolist()
+        ropes.append({'color': cols[i], 'pts': _dedupe(pts)})
+    nl = [len(P3[i][::3]) for i in range(n)]
+    tot = [len(r['pts']) for r in ropes]
+    fl['crowned'] = [(nl[i] + 18) / tot[i] for i in range(n)]
+    fl['one'] = [(nl[i] + 18 + (tot[i] - nl[i] - 18) / 3) / tot[i] for i in range(n)]
+    fl['two'] = [(nl[i] + 18 + 2 * (tot[i] - nl[i] - 18) / 3) / tot[i] for i in range(n)]
+    fl['unlaid'] = [nl[i] / tot[i] for i in range(n)]
+    return {'ropes': ropes, 'code': None, 'objects': [], 'wrapped': True, 'relax': 'repel',
+            'fraction_lists': fl, 'marks': {'end': (0, len(ropes[0]['pts']) - 1)}, 'ncross': ncross,
+            'unresolved': bad, 'view': {'elev': 15}}
+
+
+def short_splice():
+    """Two ropes married end to end: each rope's strands are tucked into the other
+    rope against its lay, over one and under one."""
+    import numpy as np
+    n = 3
+    parts = []
+    off = math.pi / n                                # the second rope's strands sit between the first's
+    for i in range(n):                               # yellow rope from below, its strands tucked upward
+        th1, y1 = _lay(i, -3.6, 0.0)
+        y2 = np.arange(0.03, 2.55, 0.03)
+        th2 = th1[-1] - 2 * math.pi * y2 / (PITCH * 1.05)
+        base = np.concatenate([np.full(len(y1), RC), RC + (TUCK_BASE - RC) * np.clip(y2 / 0.25, 0, 1)])
+        parts.append({'theta': np.concatenate([th1, th2]), 'y': np.concatenate([y1, y2]), 'base': base,
+                      'kind': ['lay'] * len(y1) + ['tuck'] * len(y2)})
+    for i in range(n):                               # blue rope from above, its strands tucked downward
+        y1 = np.arange(3.6, -1e-9, -0.03)
+        th1 = 2 * math.pi * i / n + off + 2 * math.pi * y1 / PITCH
+        y2 = np.arange(-0.03, -2.55, -0.03)
+        th2 = th1[-1] - 2 * math.pi * y2 / (PITCH * 1.05)
+        base = np.concatenate([np.full(len(y1), RC), RC + (TUCK_BASE - RC) * np.clip(-y2 / 0.25, 0, 1)])
+        parts.append({'theta': np.concatenate([th1, th2]), 'y': np.concatenate([y1, y2]), 'base': base,
+                      'kind': ['lay'] * len(y1) + ['tuck'] * len(y2)})
+    P3, ncross, bad = _cyl_weave(parts)
+    cols = ['a', 'a', 'a', 'b', 'b', 'b']
+    ropes = [{'color': cols[k], 'pts': P[::3].tolist() + [P[-1].tolist()]} for k, P in enumerate(P3)]
+    fr_meet = [len(_lay(0, -3.6, 0.0)[1]) / len(P3[0])] * 6
+    fl = {'meet': fr_meet, 'yellow': [1.0] * 3 + fr_meet[3:], 'all': [1.0] * 6}
+    return {'ropes': ropes, 'code': None, 'objects': [], 'wrapped': True, 'relax': 'repel',
+            'fraction_lists': fl, 'marks': {'end': (0, len(ropes[0]['pts']) - 1)}, 'ncross': ncross, 'unresolved': bad,
+            'view': {'elev': 10}}
+
+
+def eye_splice():
+    """The end is laid back alongside the rope to form an eye, and its three strands
+    are tucked into the standing part against the lay."""
+    import numpy as np
+    from knotlib import catmull_rom, resample
+    n = 3
+    ytop = 0.45
+    # eye centreline: up from the standing part, round, and back down beside it
+    rc_eye, cx, cy = 1.45, 1.45, ytop + 1.7
+    cl = [[0, ytop, 0], [0, ytop + 0.6, 0]]
+    for k in range(1, 12):
+        a = math.pi - (math.pi + 0.55) * k / 11            # from the left, over the top, round to lower right
+        cl.append([cx + rc_eye * math.cos(a), cy + rc_eye * math.sin(a), 0])
+    cl += [[1.15, ytop + 0.2, 0], [0.82, ytop - 0.15, 0]]
+    C, _ = resample(catmull_rom(cl, per_seg=12), 0.03)
+    T = np.gradient(C, axis=0)
+    T /= np.linalg.norm(T, axis=1)[:, None]
+    N = [np.array([0.0, 0.0, 1.0])]
+    for i in range(1, len(C)):
+        v = N[-1] - N[-1].dot(T[i]) * T[i]
+        N.append(v / np.linalg.norm(v))
+    N = np.array(N)
+    Bn = np.cross(T, N)
+    arc = np.concatenate([[0], np.cumsum(np.linalg.norm(np.diff(C, axis=0), axis=1))])
+    parts, eyes = [], []
+    for i in range(n):
+        th, y = _lay(i, -3.4, ytop)
+        parts.append({'theta': th, 'y': y, 'base': np.full(len(y), RC), 'kind': ['lay'] * len(y)})
+        psi = th[-1] + 2 * math.pi * arc / PITCH
+        E = C + RC * (np.cos(psi)[:, None] * Bn * 0 + np.sin(psi)[:, None] * Bn + np.cos(psi)[:, None] * N)
+        eyes.append(E)
+    # tucks: each eye strand goes round to its own starting point on the standing part
+    tucks, conns = [], []
+    starts = [0.5 * math.pi, 0.5 * math.pi + 2 * math.pi / 3, 0.5 * math.pi - 2 * math.pi / 3]
+    ends = [E[-1] for E in eyes]
+    used = set()
+    order = []
+    for E in eyes:
+        ang = math.atan2(E[-1][0], E[-1][2])
+        j = min((j for j in range(n) if j not in used), key=lambda j: abs(((starts[j] - ang + math.pi) % (2 * math.pi)) - math.pi))
+        used.add(j)
+        order.append(j)
+    for i in range(n):
+        j = order[i]
+        th, y = _tuck(starts[j], ytop - 0.5, -2.4)
+        parts.append({'theta': th, 'y': y, 'base': np.full(len(y), TUCK_BASE), 'kind': ['tuck'] * len(y)})
+        e = eyes[i][-1]
+        a0 = math.atan2(e[0], e[2])
+        a1 = starts[j]
+        while a1 - a0 > math.pi:
+            a1 -= 2 * math.pi
+        while a0 - a1 > math.pi:
+            a1 += 2 * math.pi
+        conn = []
+        for k in range(1, 7):
+            t = k / 7
+            a = a0 + (a1 - a0) * t
+            rr = (1 - t) * math.hypot(e[0], e[2]) + t * TUCK_BASE + 0.4 * math.sin(math.pi * t)
+            conn.append([rr * math.sin(a), e[1] + (ytop - 0.5 - e[1]) * t, rr * math.cos(a)])
+        conns.append(conn)
+    P3, ncross, bad = _cyl_weave(parts)
+    cols = ['a', 'b', 'c']
+    ropes = []
+    for i in range(n):
+        pts = P3[i][::3].tolist() + eyes[i][::3].tolist() + conns[i] + P3[n + i][::3].tolist()
+        ropes.append({'color': cols[i], 'pts': _dedupe(pts)})
+    tot = [len(r['pts']) for r in ropes]
+    nl = len(P3[0][::3]) + len(eyes[0][::3])
+    fl = {'eye': [nl / t for t in tot], 'first': [(nl + 8) / t for t in tot], 'one': [(nl + 8 + (t - nl - 8) / 3) / t for t in tot]}
+    return {'ropes': ropes, 'code': None, 'objects': [], 'wrapped': True, 'relax': 'repel',
+            'fraction_lists': fl, 'marks': {'end': (0, len(ropes[0]['pts']) - 1)}, 'ncross': ncross, 'unresolved': bad,
+            'view': {'elev': 8}}
+
+
+TW = 0.075                     # twine radius for whippings and seizings
+ROPE_R = 0.42                  # radius of the rope being whipped
+
+
+def common_whipping():
+    """Twine laid along the rope in a bight pointing to the end, turns wrapped over it
+    toward the end, the end passed through the bight; pulling the other end draws
+    the bight under the turns."""
+    r = TW
+    rl = ROPE_R + r + 0.01                      # lying on the rope
+    rt = ROPE_R + 3 * r + 0.04                  # turns over the legs
+    leg = 0.12                                  # legs either side of the front line
+    al = leg / rl
+    P = math.pi
+    y_lo, y_hi = -2.3, -0.75
+    pts = [[-leg * 1.2, -3.4, rl + 0.05], [-leg, -2.8, rl], [-leg, -1.5, rl], [-leg, -0.6, rl],
+           [-leg, -0.32, rl + 0.12], [0.0, -0.16, rl + 0.2], [leg, -0.32, rl + 0.12], [leg, -0.6, rl],
+           [leg, -1.5, rl], [leg, y_lo + 0.1, rl], [leg + 0.2, y_lo - 0.1, rl - 0.05]]
+    k_bight = len(pts) - 1
+    n_turns = int((y_hi - y_lo) / (2 * r + 0.035))
+    turns = coil_y(0, 0, rl, 0.5 * P, 0.5 * P + 2 * P * n_turns, y_lo, y_hi, n=40 * n_turns,
+                   rho_fn=lambda a, t: rl + bump(((a + P) % (2 * P)) - P, 0.0, 0.75, rt - rl))
+    pts += turns
+    k_turns = len(pts) - 1
+    # through the bight: under its lifted top, and out beyond the rope end
+    pts += [[0.25, y_hi + 0.15, rl + 0.05], [0.04, -0.42, rl + 0.02], [0.0, -0.22, rl - 0.0], [0.0, 0.05, rl - 0.05],
+            [0.05, 0.35, rl + 0.15], [0.1, 0.8, rl + 0.3]]
+    pts = _dedupe(pts)
+    return {'ropes': [{'color': 'c', 'pts': pts}], 'code': None, 'r': r, 'relax': 'repel', 'wrapped': True,
+            'objects': [{'type': 'pole', 'axis': 'y', 'c': [0, -2.1, 0], 'radius': ROPE_R, 'len': 4.2, 'rope': True}],
+            'marks': {'bight': (0, k_bight), 'turns': (0, k_turns), 'end': (0, len(pts) - 1)}, 'view': {'elev': 8}}
+
+
+def seizing():
+    """Flat seizing: turns of twine round two ropes lying side by side, then two
+    frapping turns between them to draw the turns tight."""
+    r = TW
+    xs = ROPE_R + r + 0.03                      # rope centres (gap between them for the frapping turns)
+    rho = ROPE_R + r + 0.01
+    y0, n_turns, pitch = -1.0, 9, 2 * r + 0.035
+    start = [[0.0, y0 - 1.6, 0.28], [0.0, y0 - 0.9, 0.24], [0.0, y0 + 0.4, 0.2], [0.0, y0 + 1.2, 0.2],
+             [0.1, y0 + 1.42, 0.3], [-0.2, y0 + 1.5, rho + 0.1]]
+    # the start end is laid in the groove between the ropes and the turns go over it, working down
+    turns = _racetrack(xs, rho, y0 + 1.25, n_turns, -pitch, u0=0.95, m_per=44)
+    ybot = turns[-1][1]
+    ytop = y0 + 1.25
+    zf = rho + 2 * r + 0.07
+    frap = [[0.0, ybot - 0.2, zf * 0.7]]
+    for j in range(2):
+        e = j * (2 * r + 0.04)
+        frap += [[0.0, ybot - 0.18 - e, zf + e], [0.0, ytop + 0.18 + e, zf + e], [0.0, ytop + 0.24 + e, 0.0],
+                 [0.0, ytop + 0.18 + e, -zf - e], [0.0, ybot - 0.18 - e, -zf - e], [0.0, ybot - 0.24 - e, 0.0]]
+    end = [[0.0, ybot - 0.45, zf + 0.15], [0.3, ybot - 0.9, zf + 0.2], [0.5, ybot - 1.5, zf + 0.15]]
+    pts = _dedupe(start + turns + frap + end)
+    k_turns = len(start) + len(turns) - 1
+    k_frap = k_turns + len(frap)
+    objs = [{'type': 'pole', 'axis': 'y', 'c': [-xs, -0.6, 0], 'radius': ROPE_R, 'len': 5.0, 'rope': True},
+            {'type': 'pole', 'axis': 'y', 'c': [xs, -0.6, 0], 'radius': ROPE_R, 'len': 5.0, 'rope': True}]
+    return {'ropes': [{'color': 'c', 'pts': pts}], 'code': None, 'r': r, 'relax': 'repel', 'wrapped': True,
+            'objects': objs, 'marks': {'start': (0, len(start) - 1), 'turns': (0, k_turns), 'frap': (0, k_frap),
+                                       'end': (0, len(pts) - 1)}, 'view': {'elev': 8}}
