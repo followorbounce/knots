@@ -111,3 +111,12 @@ Tag dump per step (check captions):
     python3 -c "import build,knotlib;from knots import KNOTS
     for k in KNOTS:
         n,b=build.build_knot(k);print(k['slug'],[''.join('O' if t['over'] else 'U' for t in knotlib.step_tags(n,b,i)) for i in range(len(n['steps']))])"
+
+## 2026-10-13: Cow Hitch redrawn (owner report: "just not a knot")
+The old model was topologically a lark's head, but the bight hung loose below the rail
+and each leg vanished into the rail's underside, so the picture read as a U draped over
+a bar. New `cow_hitch()`: each leg runs up the front of the rail under the bight, one
+full turn (over the top, down the back, under, up the front outside the leg), and the
+bight lies flat across the front over both legs, the standard view of the hitch. Net winding
+round the rail is 0, as for a real cow hitch. Pedigree Cow Hitch rebuilt on it (tuck
+goes up between the legs and the bight, then down in front). Captions updated.

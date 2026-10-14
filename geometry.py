@@ -695,29 +695,32 @@ def double_overhand_noose():
             'marks': {'loop': (0, k1), 'coil': (0, k1 + i_coil), 'end': (0, len(pts) - 1)}}
 
 
-def cow_hitch():
-    """Lark's head on a rail: one turn each side of the legs, joined by the bight,
-    which lies across the legs. Built round a vertical axis, then turned so the
-    rail is horizontal and both legs hang down."""
+def cow_hitch(zb_extra=0.0):
+    """Lark's head on a rail, seen from the side where the bight lies across the rail.
+    Each leg comes up the front of the rail under the bight, goes over the top, down
+    the back, under the rail and up the front outside the legs; the two ends of
+    that turn are joined by the bight, which lies flat across the front over both
+    legs. Built round a vertical axis (a=0 front), then turned so the rail is horizontal."""
     rho = POLE + R + 0.015
-    yl = R + 0.04
-    pitch = 2 * R + 0.06
-    legs_x = 3.2
-    up = coil_y(0, 0, rho, 0.5 * math.pi, 2.5 * math.pi, yl + 0.05, yl + 0.05 + pitch, n=30)
-    top = up[-1][1]
-    zb = rho + 2 * R + 0.05
-    bridge = [[rho + 0.18, top + 0.02, 0.18], [rho + 0.3, top * 0.55, 0.42], [rho + 0.32, 0.0, 0.46],
-              [rho + 0.3, -top * 0.55, 0.42], [rho + 0.18, -top - 0.02, 0.18]]
-    down = coil_y(0, 0, rho, 2.5 * math.pi, 0.5 * math.pi, -top, -(yl + 0.05), n=30)
-    leg1 = [[legs_x, yl, 0], [legs_x - 1.2, yl, 0], [rho + 0.6, yl, 0], [rho + 0.15, yl + 0.02, 0]]
-    leg2 = [[rho + 0.15, -yl - 0.02, 0], [rho + 0.6, -yl, 0], [legs_x - 1.2, -yl, 0], [legs_x, -yl, 0]]
-    pts = _dedupe(leg1 + up[1:] + bridge + down + leg2)
+    yl = R + 0.05                                     # legs either side of the middle
+    pitch = 2 * R + 0.1
+    yo = yl + pitch                                   # where each turn comes back up the front
+    zb = rho + 2 * R + 0.05 + zb_extra                # the bight, over the legs
+    def turn(sign):
+        # leg up the front face, then one full turn: over the top, down the back, under, up the front
+        leg = [[3.4, sign * yl, rho + 0.02], [2.0, sign * yl, rho + 0.02], [rho + 0.5, sign * yl, rho + 0.01], [rho * 0.45, sign * yl, rho]]
+        c = coil_y(0, 0, rho, 0.0, -2 * math.pi, sign * yl, sign * yo, n=48)
+        c = [[-p[0], p[1], p[2]] for p in c]          # a decreasing from the front goes over the top first
+        rise = [[0.1, sign * (yo + 0.02), rho + 0.12], [0.05, sign * (yo - 0.05), zb]]
+        return leg + c[1:] + rise
+    t1 = turn(1)
+    t2 = turn(-1)[::-1]
+    pts = _dedupe(t1 + [[0.0, 0.0, zb + 0.02]] + t2)
     pts = [[p[1], -p[0], p[2]] for p in pts]
-    k_up = len(leg1) + len(up) - 2
+    k_up = len(t1) - 3
     return {'ropes': [{'color': 'a', 'pts': pts}], 'code': None,
             'objects': [{'type': 'pole', 'axis': 'x', 'c': [0, 0, 0], 'radius': POLE, 'len': 3.6}],
-            'marks': {'leg': (0, len(leg1) - 1), 'over': (0, k_up), 'bridge': (0, k_up + len(bridge)), 'end': (0, len(pts) - 1)}}
-
+            'marks': {'leg': (0, 3), 'over': (0, k_up), 'bridge': (0, len(t1) + 1), 'end': (0, len(pts) - 1)}}
 
 def round_turn_bowline():
     """Bowline with the small loop taken twice round (two turns), for more grip."""
@@ -1786,22 +1789,25 @@ def mirrored_rolling_hitch():
 
 
 def pedigree_cow_hitch():
-    """A cow hitch with the loaded leg's partner tucked back up under the bight."""
-    g = cow_hitch()
+    """A cow hitch with the unloaded leg tucked back up under the bight and down in front,
+    so a pull on the standing leg alone cannot slide it."""
+    rho = POLE + R + 0.015
+    lay = 2 * R + 0.06
+    g = cow_hitch(zb_extra=lay)
     pts = g['ropes'][0]['pts']
-    # pts are in the rotated frame (rail along x, legs hang down at x = +-yl). Replace the
-    # last leg's hanging part with a tuck: up under the bight and down in front.
+    zt = rho + lay                                    # the tuck: over the legs, under the bight
+    zb = rho + 2 * R + 0.05 + lay
     k = len(pts) - 1
-    while k > 0 and pts[k][1] < -0.75:
+    while k > 0 and pts[k][1] < -(POLE + 0.55):
         k -= 1
-    leg_x = pts[-1][0]
-    tuck = [[leg_x, -1.15, 0.0], [leg_x * 0.4, -1.5, 0.12], [0.0, -1.2, 0.3], [-0.02, -0.75, 0.32],
-            [0.0, -0.3, 0.28], [0.05, -0.05, 0.62], [0.08, -0.5, 0.95], [0.1, -1.4, 0.95], [0.12, -2.4, 0.85]]
+    lx = pts[k][0]
+    tuck = [[lx, -POLE - 0.95, rho + 0.08], [lx * 0.5, -POLE - 1.25, rho + 0.3], [0.0, -POLE - 0.95, zt], [0.0, -0.3, zt],
+            [0.0, 0.25, zt], [0.0, 0.55, zt + 0.15], [0.0, 0.5, zb + 0.32], [0.0, 0.0, zb + 0.36], [0.02, -1.0, zb + 0.3],
+            [0.05, -2.3, zb + 0.2]]
     g['ropes'][0]['pts'] = _dedupe(pts[:k + 1] + tuck)
     g['marks']['end'] = (0, len(g['ropes'][0]['pts']) - 1)
     g['ropes'][0]['color'] = 'c'
     return g
-
 
 def cow_hitch_toggle():
     """Cow hitch through a ring, held by a toggle instead of the ends: pull the
