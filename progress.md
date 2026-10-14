@@ -104,7 +104,8 @@ square-knot layout (`_surgeon_layout`), keeping codes that close to the right ty
   `tools/preview.py`.
 
 ## Next
-Work through "Held back" above, one verified model at a time.
+Owner decision 2026-10-14: the 12 knots in `REDRAW` stay as they are, with their notice; no redraw planned.
+Cow Hitch and Pedigree Cow Hitch are fixed. Further work only on request.
 
 ## Snippets
 Tag dump per step (check captions):
