@@ -99,6 +99,9 @@ def resolve_steps(k, g):
         elif 'f' in at:
             fr = g['fractions'][at['f']]
             show = {i: fr for i in range(len(g['ropes']))}
+        elif 'fl' in at:
+            fr = g['fraction_lists'][at['fl']]
+            show = {i: float(v) for i, v in enumerate(fr)}
         elif 'rf' in at:
             r, fr = g['rope_fractions'][at['rf']]
             show = {i: 'all' for i in range(r)}
@@ -384,8 +387,12 @@ def main():
         knot, built = build_knot(k)
         probs = list(built['problems'])
         kt = ''
+        if knot.get('alternating') is False:
+            probs.append('weave is not alternating')
+        if k.get('expect_cross') and knot.get('ncross') != k['expect_cross']:
+            probs.append('crossings %s != %s' % (knot.get('ncross'), k['expect_cross']))
         if k.get('expect'):
-            V = knotlib.jones(built['ropes'], knot.get('closure', [(0, 1)]))
+            V = knotlib.jones(knot.get('jones_ropes') or built['ropes'], knot.get('closure', [(0, 1)]))
             if knotlib.knot_type_ok(V, k['expect']):
                 kt = 'type %s ok' % k['expect']
             else:

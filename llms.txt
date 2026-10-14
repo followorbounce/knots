@@ -44,6 +44,19 @@ Interactive 3D guide to tying knots.
 - [Square Lashing](https://followorbounce.github.io/knots/knots/square-lashing/): Lashes two poles that cross at right angles, for frames, tables, gates and trellises
 - [Clinch Knot](https://followorbounce.github.io/knots/knots/clinch-knot/): The classic way to tie line to a hook, lure or swivel: through the eye, five twists round the line, then back through the small loop by the eye.
 - [Improved Clinch Knot](https://followorbounce.github.io/knots/knots/improved-clinch-knot/): A clinch knot with one extra tuck: after going through the small loop by the eye, the end goes back through the big loop it has just made
+- [Turk’s Head (3 lead, 4 bight)](https://followorbounce.github.io/knots/knots/turks-head-3l4b/): A woven band round a pole or rail
+- [Turk’s Head (4 lead, 5 bight)](https://followorbounce.github.io/knots/knots/turks-head-4l5b/): A woven band round a pole or rail
+- [Turk’s Head (5 lead, 4 bight)](https://followorbounce.github.io/knots/knots/turks-head-5l4b/): A woven band round a pole or rail
+- [Carrick Bend](https://followorbounce.github.io/knots/knots/carrick-bend/): A join for heavy rope, woven strictly over-under
+- [Carrick Mat](https://followorbounce.github.io/knots/knots/carrick-mat/): The carrick bend’s weave closed into a flat oval and followed round twice
+- [Monkey’s Fist](https://followorbounce.github.io/knots/knots/monkeys-fist/): A woven ball at the end of a line: three sets of turns at right angles to each other, the last set passing inside the first and round the second
+- [Crown Knot](https://followorbounce.github.io/knots/knots/crown-knot/): The strands at the end of a laid rope are folded over each other in turn, so each one passes over the next and under the one before
+- [Wall Knot](https://followorbounce.github.io/knots/knots/wall-knot/): A crown upside down: each strand passes under the next and comes up through its bight, so the ends point up out of the top
+- [Three-Strand Flat Braid](https://followorbounce.github.io/knots/knots/flat-braid-3/): A flat braid of 3 strands
+- [Four-Strand Flat Braid](https://followorbounce.github.io/knots/knots/flat-braid-4/): A flat braid of 4 strands
+- [Five-Strand Flat Braid](https://followorbounce.github.io/knots/knots/flat-braid-5/): A flat braid of 5 strands
+- [Six-Strand Flat Braid](https://followorbounce.github.io/knots/knots/flat-braid-6/): A flat braid of 6 strands
+- [Seven-Strand Flat Braid](https://followorbounce.github.io/knots/knots/flat-braid-7/): A flat braid of 7 strands
 
 ## Basics
 

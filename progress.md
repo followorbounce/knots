@@ -40,6 +40,24 @@
 - Engine: `push_out` keeps relaxed rope out of poles; knots with poles can use
   `'relax': 'gaps'` (crossing lift only) when their raw geometry is clean.
 
+## 2026-10-13: Wave 4 (13 more, 53 total)
+- Turk's head generator: annulus drawing r = r0 + a cos(B t / L), t in [0, 2 pi L],
+  forced alternating, rolled onto a pole. Validated: (2,3) = trefoil, (3,2) =
+  figure-eight, (2,5) = 5_1, (3,4) = 8_18 exactly; crossing count B(L-1).
+- New: Turk's heads 3L4B, 4L5B, 5L4B; Carrick Bend (3L4B mat cut at two outer
+  bights, rejoins to 8_18, each rope alone unknotted); Carrick Mat (doubled);
+  Monkey's Fist (three woven bands, transitions routed over the outside);
+  Crown and Wall knots on a laid 3-strand rope; flat braids of 3-7 strands.
+- Knots wrapped round poles or balls use `'wrapped': True` (3D clearance only,
+  projected crossing gaps ignored) and `'relax': 'repel'`. Per-knot camera
+  elevation via `view: {elev}`. Steps can reveal per-strand fractions (`fl`).
+- Build is slow (~4 min): flat braid 7 and multiple overhand dominate.
+
+## Still to do from wave 4
+Matthew Walker, Manrope and Diamond knots; Ocean-Braid and Oval mats; Chain
+Sennit; Four-Strand Round, Eight-Strand Square, Round Crown, Six-Strand Round
+Crowning and Square Crown sennits.
+
 ## Still to do from wave 3
 Carrick Bend (build from the 3-lead 4-bight Turk's head generator in wave 4),
 Hunter's Bend, Ashley's Bend, Double and Tucked Sheet Bends, Rope Yarn Knot,

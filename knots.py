@@ -884,3 +884,155 @@ W3 = [
     },
 ]
 KNOTS += W3
+
+
+def _th(slug, geo, L, B, extra):
+    return dict({
+        'slug': slug, 'geo': geo, 'name': 'Turk’s Head (%d lead, %d bight)' % (L, B), 'aka': ['%dL%dB Turk’s head' % (L, B)],
+        'chapter': 'binding', 'jobs': [], 'acts': ['Gifts', 'Sailing'],
+        'difficulty': 3 if L > 3 else 2, 'security': 'Holds by friction', 'untie': 'Easy',
+        'brief': 'A woven band round a pole or rail. Followed round, the single rope crosses itself in a strict over-under '
+                 'pattern: %d strands lie side by side all the way round (the leads) and the band has %d scallops on each '
+                 'edge (the bights).' % (L, B),
+        'uses': ['Decorative grips on tillers, rails, handles and walking sticks.', 'A neckerchief woggle or bracelet when tied round the fingers.',
+                 'Marking the centre spoke of a ship’s wheel.'],
+        'cautions': ['Work the slack out a little at a time, all the way round, or the band ends up lopsided.',
+                     'Most are followed round two or three times for a fuller band; tuck the ends inside.'],
+        'untie_how': 'Loosen it all the way round and slide it off, or work the ends back out.',
+        'related': [('turks-head-3l4b', '3 lead, 4 bight.'), ('turks-head-4l5b', '4 lead, 5 bight.'), ('turks-head-5l4b', '5 lead, 4 bight.'),
+                    ('carrick-mat', 'The 3 lead, 4 bight pattern laid flat.')],
+        'steps': [
+            ({'f': 'q1'}, 'Wrap the rope round the pole, starting the pattern: each time it meets another part of itself it goes over, then under, then over.', {'notags': True}),
+            ({'f': 'q2'}, 'Keep following the pattern round. Rotate the pole as you go, so you always work on the front.', {'notags': True}),
+            ({'f': 'q3'}, 'Keep the over-under strict. One wrong crossing changes the knot.', {'notags': True}),
+            ('end', 'When the end meets the start, the band is complete. Lay the end alongside the start to follow the pattern round again.', {'notags': True}),
+            ('end', 'Tighten gradually all round and tuck the ends under the band.', {'tighten': True, 'notags': True}),
+        ],
+    }, **extra)
+
+
+def _braid(n, name, extra):
+    return dict({
+        'slug': 'flat-braid-%d' % n, 'geo': 'flat_braid_%d' % n, 'name': name, 'aka': ['%d-strand plait' % n],
+        'chapter': 'braid', 'jobs': [], 'acts': ['Gifts', 'Household'],
+        'difficulty': 1 if n <= 4 else 2, 'security': 'Holds when the end is bound', 'untie': 'Easy',
+        'brief': 'A flat braid of %d strands. Alternately from the left and the right, the outermost strand is brought to the middle, '
+                 'passing over and under the strands on its way.' % n,
+        'uses': ['Lanyards, straps, bracelets and decorative cords.', 'Hair, bread and rush work use the same pattern.'],
+        'cautions': ['Bind the strands together at the start, and again at the end, or the braid unravels.',
+                     'Keep an even tension so the edges stay straight.'],
+        'untie_how': 'Unbind the end and unbraid it.',
+        'related': [('flat-braid-3', 'Three strands.'), ('flat-braid-4', 'Four strands.'), ('flat-braid-5', 'Five strands.'),
+                    ('flat-braid-6', 'Six strands.'), ('flat-braid-7', 'Seven strands.')],
+        'steps': [
+            ({'fl': 'r1'}, 'Bind the strands together at the top and spread them flat. Bring the outer left strand to the middle, over-under the strands it passes.', {'notags': True}),
+            ({'fl': 'r2'}, 'Now the outer right strand to the middle, the same way. Then left again, then right.', {'notags': True}),
+            ({'fl': 'r3'}, 'Carry on alternating. Pull each strand snug as it reaches the middle.', {'notags': True}),
+            ('all', 'Bind the strands together at the end.', {'notags': True}),
+        ],
+    }, **extra)
+
+
+W4 = [
+    _th('turks-head-3l4b', 'turks_head_3l4b', 3, 4, {'expect': '8_18'}),
+    _th('turks-head-4l5b', 'turks_head_4l5b', 4, 5, {'expect_cross': 15}),
+    _th('turks-head-5l4b', 'turks_head_5l4b', 5, 4, {'expect_cross': 16}),
+    {
+        'slug': 'carrick-bend', 'geo': 'carrick_bend', 'name': 'Carrick Bend', 'aka': ['Sailor’s knot'],
+        'chapter': 'bend', 'jobs': ['join'], 'acts': ['Sailing', 'Gifts'], 'expect': '8_18', 'expect_each': ['unknot', 'unknot'],
+        'difficulty': 2, 'security': 'High', 'untie': 'Easy',
+        'brief': 'A join for heavy rope, woven strictly over-under. Laid flat it is one of the most handsome knots there is; '
+                 'under load it capsizes into a compact lump that still unties easily.',
+        'uses': ['Joining heavy ropes, cables and hawsers.', 'A decorative flat knot on its own, or the start of a mat.'],
+        'cautions': ['Every crossing must alternate over and under, or it is not a carrick and may slip.',
+                     'The ends can work loose when it capsizes; seize them to the standing parts for a long-term join.'],
+        'untie_how': 'Push the loops apart; even after a load it opens easily.',
+        'related': [('carrick-mat', 'The same weave closed into a mat.'), ('sheet-bend', 'Quicker for light rope.'),
+                    ('turks-head-3l4b', 'The same pattern round a pole.')],
+        'steps': [
+            ('a', 'Make a loop in the yellow end, with the end crossing over the standing part.'),
+            ({'rf': 'b1'}, 'Bring the blue end in under the yellow loop and start weaving.'),
+            ({'rf': 'b2'}, 'Keep going strictly over, under, over, under, crossing its own standing part on the way.'),
+            ('b', 'Finish with the blue end leaving diagonally opposite the yellow end.'),
+            ('b', 'Pull the standing parts. Laid flat it stays open; under load it rolls into a tight knot.', {'tighten': True}),
+        ],
+    },
+    {
+        'slug': 'carrick-mat', 'geo': 'carrick_mat', 'name': 'Carrick Mat', 'aka': [],
+        'chapter': 'braid', 'jobs': [], 'acts': ['Gifts', 'Sailing', 'Household'], 'expect': '8_18',
+        'difficulty': 2, 'security': 'Holds its shape', 'untie': 'Easy',
+        'brief': 'The carrick bend’s weave closed into a flat oval and followed round twice. A small mat, coaster or base for a '
+                 'decoration, and the simplest of the woven mats.',
+        'uses': ['Coasters, small mats and pot stands.', 'A flat decoration on a bag, box or wall.', 'Learning the over-under logic of woven mats.'],
+        'cautions': ['Lay the first pass loosely; it is much easier to follow round a loose pattern.',
+                     'Keep the parallel passes flat beside each other, not on top of each other.'],
+        'untie_how': 'Pull the end back out the way it went.',
+        'related': [('carrick-bend', 'The open version, joining two ropes.'), ('turks-head-3l4b', 'The same pattern round a pole.')],
+        'steps': [
+            ({'fl': 'half'}, 'Lay out the carrick pattern loosely on a table: loops crossing strictly over and under.', {'notags': True}),
+            ({'fl': 'first'}, 'Close the pattern: the end meets the start.', {'notags': True}),
+            ({'fl': 'second'}, 'Follow the pattern round a second time, beside the first pass.', {'notags': True}),
+            ('all', 'Complete the second pass and work out the slack so the mat lies flat. Tuck the ends underneath.', {'notags': True}),
+        ],
+    },
+    {
+        'slug': 'monkeys-fist', 'geo': 'monkeys_fist', 'name': 'Monkey’s Fist', 'aka': [],
+        'chapter': 'stopper', 'jobs': ['stop'], 'acts': ['Sailing', 'Gifts'],
+        'difficulty': 3, 'security': 'High', 'untie': 'Hard',
+        'brief': 'A woven ball at the end of a line: three sets of turns at right angles to each other, the last set passing inside '
+                 'the first and round the second. It weights a heaving line so it can be thrown a long way.',
+        'uses': ['Weighting the end of a heaving line.', 'Key rings, pulls and decorations.', 'A stopper too big to pull through anything.'],
+        'cautions': ['Never put a hard weight inside one that might be thrown at people.',
+                     'Work out the slack in order, following the rope from the standing part to the end.'],
+        'untie_how': 'Work the slack back from the end through each set of turns in reverse.',
+        'related': [('multiple-overhand-knot', 'A heavy stopper that is quicker to tie.'), ('stevedore-knot', 'A large stopper that unties easily.')],
+        'steps': [
+            ('a', 'Wrap the rope round your hand three times: the first set of turns.', {'notags': True}),
+            ('b', 'Take three turns round the middle of the first set, at right angles to it.', {'notags': True}),
+            ('end', 'Take three more turns at right angles to both, passing inside the first set and round the second.', {'notags': True}),
+            ('end', 'Put a ball inside if you want weight, then work the slack out turn by turn until the ball is tight.', {'tighten': True, 'notags': True}),
+        ],
+    },
+    {
+        'slug': 'crown-knot', 'geo': 'crown_knot', 'name': 'Crown Knot', 'aka': [],
+        'chapter': 'stopper', 'jobs': [], 'acts': ['Sailing', 'Gifts'],
+        'difficulty': 2, 'security': 'Needs finishing', 'untie': 'Easy',
+        'brief': 'The strands at the end of a laid rope are folded over each other in turn, so each one passes over the next and under '
+                 'the one before. The ends point back down the rope. It is the start of the back splice and of many decorative knots.',
+        'uses': ['The first step of a back splice, which finishes a rope end without whipping.', 'With a wall knot, the manrope and diamond knots.'],
+        'cautions': ['On its own a crown is not secure. Finish it with a back splice or another knot.', 'Unlay only as much rope as you need, and tape the strand ends.'],
+        'untie_how': 'Lift each strand back out of the bight it passes through.',
+        'related': [('wall-knot', 'The same move upside down.'), ('turks-head-3l4b', 'Another woven decorative knot.')],
+        'steps': [
+            ({'fl': 'unlaid'}, 'Unlay the end of the rope a short way and spread the three strands.', {'notags': True}),
+            ({'fl': 'one'}, 'Fold the first strand over toward the next one, leaving a small bight.', {'notags': True}),
+            ({'fl': 'two'}, 'Fold the second strand over the first.', {'notags': True}),
+            ('all', 'Fold the last strand over the second and through the bight of the first. The ends now point down the rope.', {'notags': True}),
+            ('all', 'Pull each strand a little at a time until the crown is snug and even.', {'tighten': True, 'notags': True}),
+        ],
+    },
+    {
+        'slug': 'wall-knot', 'geo': 'wall_knot', 'name': 'Wall Knot', 'aka': [],
+        'chapter': 'stopper', 'jobs': ['stop'], 'acts': ['Sailing', 'Gifts'],
+        'difficulty': 2, 'security': 'Moderate', 'untie': 'Easy',
+        'brief': 'A crown upside down: each strand passes under the next and comes up through its bight, so the ends point up out of '
+                 'the top. A small stopper on its own and the base of larger strand knots.',
+        'uses': ['A small stopper at the end of a laid rope.', 'With a crown on top, the manrope knot; the base of the Matthew Walker and diamond knots.'],
+        'cautions': ['Whip or tape the ends, or finish with another knot, or it can work loose.'],
+        'untie_how': 'Pull each strand back down out of the bight it passes through.',
+        'related': [('crown-knot', 'The same move the other way up.'), ('stevedore-knot', 'A stopper tied with the whole rope.')],
+        'steps': [
+            ({'fl': 'unlaid'}, 'Unlay the end of the rope a short way and spread the three strands.', {'notags': True}),
+            ({'fl': 'one'}, 'Take the first strand round under the next one, leaving a bight.', {'notags': True}),
+            ({'fl': 'two'}, 'Take the second strand under the third the same way.', {'notags': True}),
+            ('all', 'Take the third strand under the first and up through the first strand’s bight. The ends point upward.', {'notags': True}),
+            ('all', 'Work each strand snug, a little at a time.', {'tighten': True, 'notags': True}),
+        ],
+    },
+    _braid(3, 'Three-Strand Flat Braid', {'difficulty': 1}),
+    _braid(4, 'Four-Strand Flat Braid', {}),
+    _braid(5, 'Five-Strand Flat Braid', {}),
+    _braid(6, 'Six-Strand Flat Braid', {}),
+    _braid(7, 'Seven-Strand Flat Braid', {}),
+]
+KNOTS += W4

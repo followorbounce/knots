@@ -105,7 +105,8 @@
       var fov = camera.fov * Math.PI / 180;
       var need = Math.max(s.y, s.x / asp) * 0.54 / Math.tan(fov / 2) + s.z * 0.5;
       controls.target.copy(c);
-      camera.position.set(c.x + need * 0.06, c.y + need * 0.1, c.z + need);
+      var el = ((D.view && D.view.elev) || 6) * Math.PI / 180;
+      camera.position.set(c.x + need * 0.06, c.y + need * Math.sin(el), c.z + need * Math.cos(el));
       camera.near = need / 50; camera.far = need * 10; camera.updateProjectionMatrix();
       controls.update();
     }

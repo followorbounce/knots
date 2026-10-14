@@ -1055,3 +1055,370 @@ def flat_overhand_bend():
     fr = {k: cs[i] / cs[-1] for k, i in (('start', 3), ('loop', 10), ('tuck', 15))}
     return {'ropes': [{'color': 'a', 'pts': a}, {'color': 'b', 'pts': b}], 'code': None, 'objects': [],
             'fractions': fr, 'marks': {'a': (0, len(a) - 1), 'b': (1, len(b) - 1)}}
+
+
+# ------------------------------------------------------------------ wave 4: generated decorative knots
+
+def _alternating_heights(P):
+    """Given a dense planar closed or open curve P (N,3 with z=0), make every
+    crossing alternate over/under along the curve. Returns P with z set."""
+    import numpy as np
+    from knotlib import find_crossings, z_profile, LIFT
+    cr = find_crossings([P])
+    passes = []
+    for ci, c in enumerate(cr):
+        passes.append((c['ia'], ci))
+        passes.append((c['ib'], ci))
+    passes.sort()
+    status = {}
+    targets = []
+    ok = True
+    for k, (f, ci) in enumerate(passes):
+        over = (k % 2 == 0)
+        if ci in status and status[ci] == over:
+            ok = False
+        status.setdefault(ci, over)
+        targets.append((f, LIFT if over else -LIFT))
+    Q = P.copy()
+    Q[:, 2] = z_profile(len(P), targets)
+    return Q, len(cr), ok
+
+
+def _turks_head_planar(L, B, r0=2.2, amp=0.95, n=None):
+    """Annulus drawing of the L-lead, B-bight Turk's head: r = r0 + amp cos(B t / L),
+    angle t, t from 0 to 2 pi L, then alternating over/under."""
+    import numpy as np
+    from knotlib import resample
+    n = n or 220 * L
+    t = np.linspace(0, 2 * math.pi * L, n + 1)
+    r = r0 + amp * np.cos(B * t / L)
+    P = np.column_stack([r * np.cos(t), r * np.sin(t), np.zeros_like(t)])
+    P, _ = resample(P, 0.03)
+    return _alternating_heights(P), t
+
+
+LIFT_TH = 0.17
+
+
+def _turks_head(L, B, color, pr_extra=0.0):
+    """Turk's head wrapped round a pole (axis y): the annulus drawing rolled onto
+    the cylinder, its radial offset becoming the axial position."""
+    import numpy as np
+    (Q, ncross, ok), _ = _turks_head_planar(L, B)
+    r0, amp = 2.2, 0.95
+    pr = 0.55 + 0.17 * B + pr_extra              # pole radius grows with the number of bights
+    rho0 = pr + R + 0.02
+    band = 0.45 + 0.33 * L                        # half-height of the band on the pole
+    pts = []
+    for q in Q:
+        ang = math.atan2(q[1], q[0])
+        rr = math.hypot(q[0], q[1])
+        y = (rr - r0) / amp * band
+        rho = rho0 + LIFT_TH + q[2]
+        pts.append([rho * math.sin(ang), y, rho * math.cos(ang)])
+    pts = pts[::2] + [pts[0]]
+    return {'ropes': [{'color': color, 'pts': pts, 'closed': True}], 'code': None,
+            'objects': [{'type': 'pole', 'axis': 'y', 'c': [0, 0, 0], 'radius': pr, 'len': 2 * band + 2.4}],
+            'jones_ropes': [Q], 'closure': [(0, 1)], 'relax': 'repel', 'wrapped': True,
+            'fractions': {'q1': 0.25, 'q2': 0.5, 'q3': 0.75}, 'marks': {'end': (0, len(pts) - 1)},
+            'alternating': ok, 'ncross': ncross}
+
+
+def turks_head_3l4b():
+    return _turks_head(3, 4, 'b')
+
+
+def turks_head_4l5b():
+    return _turks_head(4, 5, 'c')
+
+
+def turks_head_5l4b():
+    return _turks_head(5, 4, 'a', pr_extra=0.3)
+
+
+def carrick_bend():
+    """The 3-lead 4-bight Turk's head drawn flat (the carrick mat), cut open at two
+    opposite outer bights: two ropes, each entering on one side and leaving on the other."""
+    import numpy as np
+    (Q, n, ok), _ = _turks_head_planar(3, 4, r0=1.9, amp=0.95)
+    ang = np.unwrap(np.arctan2(Q[:, 1], Q[:, 0]))
+    ang -= ang[0]
+    N = len(Q)
+    i1 = int(np.argmin(np.abs(ang - 3 * math.pi)))
+    gap = 7
+    def tail(p, outward, along, length=2.4, zt=0.0):
+        out = []
+        for k in range(1, 6):
+            t = k / 5
+            out.append([p[0] + outward[0] * length * t + along[0] * 0.5 * t, p[1] + outward[1] * length * t + along[1] * 0.5 * t,
+                        p[2] + (zt - p[2]) * min(1, 2 * t)])
+        return out
+    def end_tail(P, i, sign):
+        p = P[i]
+        r = np.array([p[0], p[1]]) / np.hypot(p[0], p[1])
+        t = P[min(i + 1, len(P) - 1), :2] - P[max(i - 1, 0), :2]
+        t = t / np.linalg.norm(t) * sign
+        return tail(p, r * 0.9 + t * 0.45, t, 2.0, zt=0.19 * sign)
+    a = Q[gap:i1 - gap]
+    b = np.vstack([Q[i1 + gap:], Q[1:N - 0 if gap == 0 else 1]])[: (N - 1) - (i1 + gap) + 0]
+    b = np.vstack([Q[i1 + gap:N - 1], Q[0:1]])[:-gap] if False else Q[i1 + gap:N - 1 - gap]
+    A = end_tail(a, 0, -1)[::-1] + a[::3].tolist() + end_tail(a, len(a) - 1, 1)
+    Bp = end_tail(b, 0, -1)[::-1] + b[::3].tolist() + end_tail(b, len(b) - 1, 1)
+    A = [[p[0] * 1.15, p[1], p[2]] for p in A]
+    Bp = [[p[0] * 1.15, p[1], p[2]] for p in Bp]
+    return {'ropes': [{'color': 'a', 'pts': _dedupe(A)}, {'color': 'b', 'pts': _dedupe(Bp)}], 'code': None, 'objects': [],
+            'closure': [(0, 1), (1, 1)], 'relax': 'gaps',
+            'marks': {'a': (0, len(_dedupe(A)) - 1), 'b': (1, len(_dedupe(Bp)) - 1)},
+            'rope_fractions': {'b1': (1, 0.35), 'b2': (1, 0.65)}}
+
+
+def monkeys_fist(turns=3):
+    """Three bands of turns at right angles, woven round a ball: the second set
+    goes round the first; the third goes inside the first and round the second."""
+    s = 2 * R + 0.08
+    ri = 1.05
+    ro = ri + 2 * R + 0.1
+    P = math.pi
+    def helix(axis, k0, k1, a0, rfun, n=None):
+        n = n or 40 * turns
+        out = []
+        for k in range(n + 1):
+            t = k / n
+            a = a0 + 2 * P * turns * t
+            off = k0 + (k1 - k0) * t
+            rr = rfun(a)
+            if axis == 'x':
+                out.append([off, rr * math.sin(a), rr * math.cos(a)])
+            elif axis == 'y':
+                out.append([rr * math.sin(a), off, rr * math.cos(a)])
+            else:
+                out.append([rr * math.cos(a), rr * math.sin(a), off])
+        return out
+    span = s * (turns - 1) / 2
+    # A: round the x axis; outer on the y faces, inner on the z faces
+    A = helix('x', -span, span, -0.5 * P, lambda a: ri + (ro - ri) * math.sin(a) ** 2)
+    # B: round the y axis; outer on the z faces, inner on the x faces
+    B = helix('y', -span, span, 0.0, lambda a: ro - (ro - ri) * math.sin(a) ** 2)
+    # C: round the z axis; outer on the x faces, inner on the y faces
+    C = helix('z', -span, span, 0.0, lambda a: ro - (ro - ri) * math.sin(a) ** 2)
+    import numpy as np
+
+    def over(p, q, rout, n=8):
+        p, q = np.array(p, float), np.array(q, float)
+        up, uq = p / np.linalg.norm(p), q / np.linalg.norm(q)
+        om = math.acos(max(-1.0, min(1.0, float(up.dot(uq)))))
+        out = []
+        for k in range(1, n):
+            t = k / n
+            if om < 1e-6:
+                u = up
+            else:
+                u = (math.sin((1 - t) * om) * up + math.sin(t * om) * uq) / math.sin(om)
+            rr = (1 - t) * np.linalg.norm(p) + t * np.linalg.norm(q) + (rout - max(np.linalg.norm(p), np.linalg.norm(q))) * math.sin(math.pi * t)
+            out.append((u * rr).tolist())
+        return out
+    rout = ro + 2 * R + 0.12
+    wB = [0.0, -span - 0.75, rout]                 # approach each set from its own outside edge
+    wC = [rout, 0.0, -span - 0.75]
+    j1 = [[-span * 0.2 + span * 1.2 + 0.3, -rout, -0.3]] + over([span + 0.3, -rout, -0.35], wB, rout, 7) + [wB]
+    j2 = [[0.0, span + 0.5, rout]] + over([0.0, span + 0.55, rout], wC, rout, 7) + [wC]
+    stand = [[-span - 0.6, -3.6, 0.0], [-span - 0.6, -2.6, 0.0], [-span - 0.55, -rout - 0.25, 0.0]]
+    tail = [[rout, 0.0, span + 0.55], [rout * 0.7, -rout * 0.7, span + 0.6], [0.3, -2.4, span + 0.6], [0.3, -3.3, span + 0.6]]
+    pts = _dedupe(stand + A + j1 + B + j2 + C + tail)
+    kA = len(stand) + len(A)
+    kB = kA + len(j1) + len(B)
+    return {'ropes': [{'color': 'b', 'pts': pts}], 'code': None, 'objects': [], 'wrapped': True, 'relax': 'repel',
+            'view': {'elev': 25}, 'marks': {'a': (0, kA), 'b': (0, kB), 'end': (0, len(pts) - 1)}}
+
+
+def _flat_braid(n, rows=None, w=0.5, dy=0.5):
+    """n-strand flat braid: alternately from the left and right, the outermost strand
+    crosses to the middle, over-under-over the strands it passes."""
+    import numpy as np
+    from knotlib import catmull_rom, resample, find_crossings, z_profile, LIFT
+    rows = rows or (4 * n + 2)
+    order = list(range(n))                      # strand at each position
+    paths = {s: [[(i - (n - 1) / 2) * w, 0.6]] for i, s in enumerate(order)}
+    for s in range(n):
+        paths[s].append([paths[s][0][0], 0.0])
+    moves = []
+    y = 0.0
+    for r in range(rows):
+        from_left = (r % 2 == 0)
+        k = (n - 1) // 2 if from_left else n // 2
+        if from_left:
+            m = order[0]
+            passed = order[1:k + 1]
+            order = order[1:k + 1] + [m] + order[k + 1:]
+        else:
+            m = order[-1]
+            passed = list(reversed(order[n - 1 - k:n - 1]))
+            order = order[:n - 1 - k] + [m] + order[n - 1 - k:n - 1]
+        moves.append((m, passed))
+        y -= dy
+        for i, s in enumerate(order):
+            paths[s].append([(i - (n - 1) / 2) * w, y])
+    for s in range(n):
+        last = paths[s][-1]
+        paths[s].append([last[0] * 1.15, y - 0.6])
+        paths[s].append([last[0] * 1.35, y - 1.3])
+    ropes = [resample(catmull_rom(paths[s], per_seg=10), 0.03)[0] for s in range(n)]
+    cr = find_crossings(ropes)
+    targets = [[] for _ in range(n)]
+    for c in cr:
+        yc = c['xy'][1]
+        r = int(math.floor(-yc / dy))
+        if r < 0 or r >= rows:
+            continue
+        m, passed = moves[r]
+        a, b = c['ra'], c['rb']
+        if m not in (a, b):
+            continue
+        o = b if a == m else a
+        if o not in passed:
+            continue
+        over = passed.index(o) % 2 == 0
+        im = c['ia'] if a == m else c['ib']
+        io = c['ib'] if a == m else c['ia']
+        targets[m].append((im, LIFT if over else -LIFT))
+        targets[o].append((io, -LIFT if over else LIFT))
+    out = []
+    for s in range(n):
+        P = ropes[s].copy()
+        P[:, 2] = z_profile(len(P), targets[s])
+        out.append(P)
+    cols = ['a', 'b', 'c']
+    ropes_out = [{'color': cols[s % 3], 'pts': P[::2].tolist() + [P[-1].tolist()]} for s, P in enumerate(out)]
+    # reveal by rows: fraction of each strand above a given height
+    fl = {}
+    for name, rr in (('r1', 2), ('r2', 4), ('r3', 2 * n)):
+        yt = -dy * rr - 0.05
+        fr = []
+        for P in out:
+            seg = np.linalg.norm(np.diff(P, axis=0), axis=1)
+            sarc = np.concatenate([[0], np.cumsum(seg)])
+            idx = np.nonzero(P[:, 1] < yt)[0]
+            fr.append(float(sarc[idx[0]] / sarc[-1]) if len(idx) else 1.0)
+        fl[name] = fr
+    return {'ropes': ropes_out, 'code': None, 'objects': [],
+            'fraction_lists': fl, 'marks': {'end': (0, len(ropes_out[0]['pts']) - 1)}, 'ncross': len(cr)}
+
+
+def flat_braid_3():
+    return _flat_braid(3)
+
+
+def flat_braid_4():
+    return _flat_braid(4)
+
+
+def flat_braid_5():
+    return _flat_braid(5)
+
+
+def flat_braid_6():
+    return _flat_braid(6)
+
+
+def flat_braid_7():
+    return _flat_braid(7)
+
+
+def _laid_strands(n=3, y0=-1.7, y1=0.0, rc=0.19, pitch=1.6):
+    """Strands of a laid rope below the knot: n helices round the rope axis."""
+    out = []
+    for i in range(n):
+        ph = 2 * math.pi * i / n
+        pts = []
+        m = 24
+        for k in range(m + 1):
+            y = y0 + (y1 - y0) * k / m
+            a = ph + 2 * math.pi * (y - y1) / pitch
+            pts.append([rc * math.sin(a), y, rc * math.cos(a)])
+        out.append(pts)
+    return out
+
+
+def _crown_like(kind='crown', n=3):
+    """Crown (ends point down) or wall (ends point up) on an n-strand rope end.
+    Built in top view: each strand sweeps round to the next strand's side, and at
+    each crossing strand i lies over strand i+1 (crown) or under it (wall)."""
+    import numpy as np
+    from knotlib import catmull_rom, resample, find_crossings, z_profile, LIFT
+    lay = _laid_strands(n)
+    P3 = []
+    for i in range(n):
+        ph = 2 * math.pi * i / n
+        path = list(lay[i])
+        base = lay[i][-1]
+        m = 16
+        for k in range(1, m + 1):
+            t = k / m
+            a = ph + (2 * math.pi / n) * 1.35 * t
+            if kind == 'crown':
+                r = 0.19 + 0.62 * math.sin(math.pi / 2 * t)
+                y = 0.55 * math.sin(math.pi * t) + 0.05
+            else:
+                r = 0.19 + 0.62 * math.sin(math.pi / 2 * t)
+                y = 0.18 * t
+            path.append([r * math.sin(a), y, r * math.cos(a)])
+        a_end = ph + (2 * math.pi / n) * 1.35
+        if kind == 'crown':
+            for yy in (-0.15, -0.6, -1.1):
+                path.append([0.82 * math.sin(a_end), yy, 0.82 * math.cos(a_end)])
+        else:
+            a2 = a_end + 0.5
+            path += [[0.55 * math.sin(a2), 0.45, 0.55 * math.cos(a2)], [0.3 * math.sin(a2 + 0.3), 0.9, 0.3 * math.cos(a2 + 0.3)],
+                     [0.32 * math.sin(a2 + 0.4), 1.6, 0.32 * math.cos(a2 + 0.4)]]
+        P3.append(resample(catmull_rom(path, per_seg=10), 0.03)[0])
+    # over/under in top view (project onto x-z); "over" = higher y
+    top = [np.column_stack([P[:, 0], P[:, 2], P[:, 1]]) for P in P3]
+    cr = find_crossings([np.column_stack([T[:, 0], T[:, 1], np.zeros(len(T))]) for T in top])
+    targets = [[] for _ in range(n)]
+    for c in cr:
+        a, b = c['ra'], c['rb']
+        if a == b:
+            continue
+        a_over = (b == (a + 1) % n)
+        if kind == 'wall':
+            a_over = not a_over
+        targets[a].append((c['ia'], LIFT if a_over else -LIFT))
+        targets[b].append((c['ib'], -LIFT if a_over else LIFT))
+    out = []
+    for i, P in enumerate(P3):
+        Q = P.copy()
+        Q[:, 1] += z_profile(len(Q), targets[i]) * 1.1
+        out.append(Q)
+    cols = ['a', 'b', 'c']
+    ropes = [{'color': cols[i % 3], 'pts': Q[::2].tolist() + [Q[-1].tolist()]} for i, Q in enumerate(out)]
+    knot_start = [len(lay[i]) / (len(lay[i]) + 16 + 3) for i in range(n)]
+    return {'ropes': ropes, 'code': None, 'objects': [], 'wrapped': True, 'relax': 'repel',
+            'fraction_lists': {'unlaid': [0.55] * n, 'one': [1.0] + [0.55] * (n - 1), 'two': [1.0, 1.0] + [0.55] * (n - 2)},
+            'marks': {'end': (0, len(ropes[0]['pts']) - 1)}, 'view': {'elev': 38}}
+
+
+def crown_knot():
+    return _crown_like('crown')
+
+
+def wall_knot():
+    return _crown_like('wall')
+
+
+def carrick_mat():
+    """The carrick mat: the 3-lead 4-bight Turk's head laid flat, followed round twice."""
+    import numpy as np
+    (Q, n, ok), _ = _turks_head_planar(3, 4, r0=2.4, amp=1.25)
+    Q[:, 0] *= 1.25
+    T = np.gradient(Q[:, :2], axis=0)
+    T /= np.linalg.norm(T, axis=1)[:, None]
+    N = np.column_stack([-T[:, 1], T[:, 0]])
+    d = R + 0.025
+    A = np.column_stack([Q[:, :2] + d * N, Q[:, 2] * 1.25])
+    B = np.column_stack([Q[:, :2] - d * N, Q[:, 2] * 1.25])
+    a = A[::3].tolist() + [A[0].tolist()]
+    b = B[::3].tolist() + [B[0].tolist()]
+    return {'ropes': [{'color': 'c', 'pts': a, 'closed': True}, {'color': 'c', 'pts': b, 'closed': True}],
+            'code': None, 'objects': [], 'jones_ropes': [Q], 'closure': [(0, 1)], 'alternating': ok, 'ncross': n,
+            'fraction_lists': {'half': [0.5, 0.0], 'first': [1.0, 0.0], 'second': [1.0, 0.5]},
+            'marks': {'end': (0, len(a) - 1)}}

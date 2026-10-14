@@ -343,6 +343,10 @@ def build(knot):
         ropes = apply_code(ropes, knot['code'])
     if knot.get('relax') == 'gaps':
         ropes = ensure_gaps(ropes, r)
+    elif knot.get('relax') == 'repel':
+        for _ in range(3):
+            ropes = repel(ropes, r)
+            ropes = push_out(ropes, knot.get('objects', []), r)
     elif knot.get('relax', True):
         for _ in range(3):
             ropes = ensure_gaps(ropes, r)
@@ -389,6 +393,8 @@ def build(knot):
     if knot.get('code') is not None and len(cr) != len(knot['code']):
         problems.append('crossings %d != code %d' % (len(cr), len(knot['code'])))
     for c in cr:
+        if knot.get('wrapped'):
+            break
         if c['gap'] < 2 * r * 0.98:
             problems.append('crossing at (%.2f,%.2f) gap %.3f < %.3f' % (c['xy'][0], c['xy'][1], c['gap'], 2 * r))
     worst = min_clearance(ropes, r, [rp.get('closed', False) for rp in knot['ropes']], knot.get('joined', False))
@@ -743,6 +749,7 @@ KNOWN = {
     '7_1': _torus2(7),
     '9_1': _torus2(9),
 }
+KNOWN['8_18'] = {-16: 1, -12: -4, -8: 6, -4: -7, 0: 9, 4: -7, 8: 6, 12: -4, 16: 1}
 KNOWN['square'] = jones_mul(KNOWN['3_1'], jones_mirror(KNOWN['3_1']))
 KNOWN['granny'] = jones_mul(KNOWN['3_1'], KNOWN['3_1'])
 
