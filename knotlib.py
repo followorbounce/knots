@@ -229,6 +229,32 @@ def repel(ropes, r=R, passes=6, closed=None):
     return ropes
 
 
+def push_out(ropes, objects, r=R):
+    """Move any rope sample that sits inside a pole back onto its surface."""
+    if not objects:
+        return ropes
+    out = []
+    for P in ropes:
+        P = P.copy()
+        for ob in objects:
+            if ob['type'] != 'pole':
+                continue
+            c = np.array(ob['c'], float)
+            ax = {'x': 0, 'y': 1, 'z': 2}[ob['axis']]
+            Q = P - c
+            along = Q[:, ax].copy()
+            Q[:, ax] = 0
+            d = np.linalg.norm(Q, axis=1)
+            need = ob['radius'] + r + 0.01
+            bad = (d < need) & (np.abs(along) < ob['len'] / 2) & (d > 1e-6)
+            if bad.any():
+                Q[bad] *= (need / d[bad])[:, None]
+                Q[:, ax] = along
+                P[bad] = (Q + c)[bad]
+        out.append(P)
+    return out
+
+
 def _smooth(t):
     t = min(1.0, max(0.0, t))
     return t * t * (3 - 2 * t)
@@ -315,11 +341,15 @@ def build(knot):
         ctrl_s.append(ctrl_arc_positions(rope['pts']))
     if knot.get('code') is not None:
         ropes = apply_code(ropes, knot['code'])
-    if knot.get('relax', True):
+    if knot.get('relax') == 'gaps':
+        ropes = ensure_gaps(ropes, r)
+    elif knot.get('relax', True):
         for _ in range(3):
             ropes = ensure_gaps(ropes, r)
             ropes = repel(ropes, r)
+            ropes = push_out(ropes, knot.get('objects', []), r)
         ropes = ensure_gaps(ropes, r)
+        ropes = push_out(ropes, knot.get('objects', []), r)
     cr = find_crossings(ropes)
     for c in cr:
         c['a_over'] = bool(c['za'] > c['zb'])
@@ -411,11 +441,16 @@ def object_clearance(ropes, ob):
             d = np.linalg.norm(Q, axis=1) - ob['radius'] - R
             inside = np.abs(P[:, ax] - c[ax]) < ob['len'] / 2
             d = np.where(inside, d, 1e9)
-        elif ob['type'] == 'ring':
+        elif ob['type'] in ('ring', 'arc'):
             c = np.array(ob['c'], float)
             Q = P - c
             rho = np.hypot(Q[:, 0], Q[:, 1])
             d = np.hypot(rho - ob['radius'], Q[:, 2]) - ob['tube'] - R
+            if ob['type'] == 'arc':
+                ang = np.mod(np.arctan2(Q[:, 1], Q[:, 0]), 2 * np.pi)
+                a0, a1 = ob['a0'] % (2 * np.pi), ob['a1'] % (2 * np.pi)
+                inside = (ang >= a0) & (ang <= a1) if a0 <= a1 else (ang >= a0) | (ang <= a1)
+                d = np.where(inside, d, 1e9)
         else:
             continue
         i = int(np.argmin(d))
@@ -499,7 +534,7 @@ def _obj_extent(ob):
         if ob['axis'] == 'y':
             return np.array([c[0] - rad, c[0] + rad]), np.array([c[1] - L, c[1] + L])
         return np.array([c[0] - L, c[0] + L]), np.array([c[1] - rad, c[1] + rad])
-    if ob['type'] == 'ring':
+    if ob['type'] in ('ring', 'arc'):
         e = ob['radius'] + ob['tube']
         return np.array([c[0] - e, c[0] + e]), np.array([c[1] - e, c[1] + e])
     return np.array([c[0]]), np.array([c[1]])
@@ -513,11 +548,19 @@ def _obj_svg(ob, X, Y, scale):
             x, y, w, h = X(c[0] - rad), Y(c[1] + L), 2 * rad * scale, 2 * L * scale
         else:
             x, y, w, h = X(c[0] - L), Y(c[1] + rad), 2 * L * scale, 2 * rad * scale
-        return [(0.0, '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" class="obj-pole"/>' % (x, y, w, h))]
+        cls = 'obj-pole thin' if ob.get('metal') else 'obj-pole'
+        return [(0.0, '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" class="%s"/>' % (x, y, w, h, cls))]
     if ob['type'] == 'ring':
         cx, cy = X(c[0]), Y(c[1])
         return [(-0.001, '<circle cx="%.1f" cy="%.1f" r="%.1f" class="obj-ring" stroke-width="%.1f" fill="none"/>'
                  % (cx, cy, ob['radius'] * scale, 2 * ob['tube'] * scale))]
+    if ob['type'] == 'arc':
+        a0, a1 = ob['a0'], ob['a1']
+        x0, y0 = X(c[0] + ob['radius'] * math.cos(a0)), Y(c[1] + ob['radius'] * math.sin(a0))
+        x1, y1 = X(c[0] + ob['radius'] * math.cos(a1)), Y(c[1] + ob['radius'] * math.sin(a1))
+        large = 1 if (a1 - a0) % (2 * math.pi) > math.pi else 0
+        return [(-0.001, '<path d="M%.1f %.1f A%.1f %.1f 0 %d 0 %.1f %.1f" class="obj-ring" stroke-width="%.1f" fill="none" stroke-linecap="round"/>'
+                 % (x0, y0, ob['radius'] * scale, ob['radius'] * scale, large, x1, y1, 2 * ob['tube'] * scale))]
     return []
 
 

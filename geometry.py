@@ -759,3 +759,299 @@ def timber_hitch():
             'objects': [{'type': 'pole', 'axis': 'y', 'c': [0, 0, 0], 'radius': POLE, 'len': 3.4}],
             'marks': {'stand': (0, len(S) - 1), 'loop': (0, k_loop), 'around': (0, k_around),
                       'end': (0, len(pts) - 1)}}
+
+
+# ------------------------------------------------------------------ wave 3: bends
+
+def fishermans_knot():
+    """Each rope ties an overhand knot round the other; the knots slide together."""
+    off = 2 * R + 0.02
+    rho = off + 2 * R + 0.04
+    half, i_coil = _fisher_half(1, off, rho)
+    A = [[-3.6, 0, 0], [-2.4, 0, 0], [-1.2, 0, 0], [-0.55, 0, 0]] + half
+    A = _dedupe(A)
+    B = [[-p[0], -p[1], p[2]] for p in A]
+    k0 = 4
+    return {'ropes': [{'color': 'a', 'pts': A}, {'color': 'b', 'pts': B}], 'code': None, 'objects': [],
+            'closure': [(0, 1), (1, -1)],
+            'marks': {'a_lay': (0, k0), 'a_coil': (0, k0 + i_coil), 'a_tuck': (0, len(A) - 1),
+                      'b_lay': (1, k0), 'b_coil': (1, k0 + i_coil), 'b_tuck': (1, len(B) - 1)}}
+
+
+def water_knot():
+    """Ring bend: an overhand in one end, followed back in reverse by the other end."""
+    import numpy as np
+    base = [[-3.6, 0.0], [-2.2, 0.0], [-1.0, 0.0], [0.0, 0.02], [0.55, 0.27], [0.82, 0.75], [0.58, 1.22], [0.0, 1.32],
+            [-0.5, 1.02], [-0.56, 0.42], [-0.4, -0.3], [-0.05, -0.62], [0.32, -0.45], [0.36, 0.12], [0.4, 0.55],
+            [0.95, 0.8], [1.6, 0.78], [2.6, 0.7], [3.6, 0.66]]
+    base = _scale(base, 2.2, 4.2)
+    A, _, B = _doubled(base, 'uou', z_gain=1.3)
+    n = len(A)
+    cut = int(n * 0.12)
+    a = A[:n - cut][::3].tolist()              # yellow: standing part left, short tail right
+    b = B[cut:][::-3].tolist()                 # blue: standing part right, short tail left
+    return {'ropes': [{'color': 'a', 'pts': _dedupe(a)}, {'color': 'b', 'pts': _dedupe(b)}], 'code': None, 'objects': [],
+            'marks': {'a': (0, len(_dedupe(a)) - 1), 'b': (1, len(_dedupe(b)) - 1)},
+            'rope_fractions': {'b_in': (1, 0.3), 'b_half': (1, 0.62)}}
+
+
+
+
+
+def blood_knot():
+    """Barrel knot joining two lines: each end twists round the other line five
+    times and comes back through the gap where the lines cross, the two ends going
+    through in opposite directions."""
+    oy = 0.19                     # the two lines run side by side at y = -oy (yellow) and +oy (blue)
+    rho = 2 * R + 0.04
+    turns, pitch = 5, 2 * R + 0.06
+    x0 = 0.42
+    x1 = x0 + turns * pitch
+    P = math.pi
+    # yellow: standing part from the left, across the centre, wraps round the blue line on the right
+    A = [[-4.2, -oy, 0], [-2.8, -oy, 0], [-1.2, -oy, 0], [-0.35, -oy, 0], [0.1, -oy + 0.05, 0.12],
+         [x0 - 0.12, oy - rho * 0.7, rho * 0.72]]
+    k0 = 4
+    m = 18 * turns
+    for k in range(m + 1):
+        t = k / m
+        a = 0.25 * P + 2 * P * turns * t                      # coil_x convention: a=0 front, pi/2 top
+        A.append([x0 + (x1 - x0) * t, oy + rho * math.sin(a), rho * math.cos(a)])
+    i_coil = len(A) - 1
+    # back over the top of the wraps to the centre, then down through the gap
+    top = oy + rho + 2 * R + 0.02
+    A += [[x1 + 0.22, oy + rho * 0.8, 0.12], [x1 - 0.05, top, 0.0], [(x0 + x1) / 2, top, 0.0], [x0 - 0.05, top, 0.0],
+          [-0.08, 0.45, 0.05], [-0.15, 0.12, 0.38], [-0.2, 0.0, 0.0], [-0.22, -0.12, -0.38], [-0.2, -0.6, -0.42],
+          [-0.12, -1.1, -0.36], [-0.05, -1.5, -0.3]]
+    A = _dedupe(A)
+    # blue: the same shape turned half round about the vertical axis, so it enters from the right
+    B = [[-p[0], -p[1], -p[2]] for p in A]
+    # the blue end must pass through the gap the other way (from below): mirror its tuck in y
+    return {'ropes': [{'color': 'a', 'pts': A}, {'color': 'b', 'pts': B}], 'code': None, 'objects': [],
+            'marks': {'a_lay': (0, k0), 'b_lay': (1, k0), 'a_coil': (0, i_coil), 'a_tuck': (0, len(A) - 1),
+                      'b_coil': (1, i_coil), 'b_tuck': (1, len(B) - 1)}}
+
+
+# ------------------------------------------------------------------ wave 3: lashings
+
+LP = 0.3                    # lashing pole radius
+LW = LP + R + 0.015         # rope centre distance from a lashing pole axis
+
+
+def _clove_at(cx, cy, cz, flip_x=False, rotate=None):
+    """A clove hitch round a vertical pole at (cx, cz), centred on height cy.
+    Returns (points, (approach height, exit height))."""
+    core, ys, ye, i_r, i_t = _clove_core(0.0, 0.0, LW, 2.3 * R, 'clove')
+    sx = -1 if flip_x else 1
+    pts = [[cx + sx * p[0], cy + p[1], cz + p[2]] for p in core]
+    return pts, (cy + ys, cy + ye)
+
+
+def _racetrack(xs, rho, y0, n_turns, pitch, u0=0.125, m_per=44):
+    """Turns round two parallel vertical poles at x=-xs and x=+xs, rising."""
+    P = math.pi
+    out = []
+    m = m_per * n_turns
+    for k in range(m + 1):
+        t = k / m
+        u = (u0 + t * n_turns) % 1.0
+        y = y0 + pitch * n_turns * t
+        if u < 0.25:
+            p = [-xs + 2 * xs * (u / 0.25), y, rho]
+        elif u < 0.5:
+            a = (u - 0.25) / 0.25 * P
+            p = [xs + rho * math.sin(a), y, rho * math.cos(a)]
+        elif u < 0.75:
+            p = [xs - 2 * xs * ((u - 0.5) / 0.25), y, -rho]
+        else:
+            a = P + (u - 0.75) / 0.25 * P
+            p = [-xs + rho * math.sin(a), y, rho * math.cos(a)]
+        out.append(p)
+    return out
+
+
+def sheer_lashing():
+    """Two parallel poles: clove hitch on one, turns round both, frapping turns
+    between them, clove hitch on the other."""
+    xs = 0.5
+    cy1 = -2.5
+    c1, (ya, ye) = _clove_at(-xs, cy1, 0.0)
+    tail = [[-2.4, ya, LW], [-1.7, ya, LW], [-xs - 0.7, ya, LW], [-xs, ya, LW]]
+    pts = tail + c1
+    k_clove = len(pts) - 1
+    n_turns, pitch = 6, 2 * R + 0.05
+    y0 = cy1 + 1.7
+    pts += [[-xs + 0.4, ye, LW], [-xs + 0.25, ye + 0.35, LW + 0.32], [-xs + 0.05, cy1 + 0.75, LW + 0.32], [-xs + 0.1, y0 - 0.35, LW + 0.1]]
+    turns = _racetrack(xs, LW, y0, n_turns, pitch, u0=0.05)
+    pts += turns
+    k_turns = len(pts) - 1
+    ytop = turns[-1][1]
+    ylo, yhi = y0 - 0.36, ytop + 0.4
+    zf = LW + 2 * R + 0.12
+    pts += [[0.2, ytop + 0.12, LW + 0.12], [0.06, yhi - 0.05, zf * 0.8]]
+    frap = []
+    for j in range(2):
+        e = j * (2 * R + 0.12)
+        frap += [[0.0, yhi + e, zf + e], [0.0, (yhi + ylo) / 2, zf + e + 0.02], [0.0, ylo - e, zf + e],
+                 [0.0, ylo - e - 0.06, 0.0], [0.0, ylo - e, -zf - e], [0.0, (yhi + ylo) / 2, -zf - e - 0.02],
+                 [0.0, yhi + e, -zf - e], [0.0, yhi + e + 0.06, 0.0]]
+    pts += frap
+    k_frap = len(pts) - 1
+    cy2 = yhi + 0.42 + 0.58 + 0.7
+    c2, (ya2, ye2) = _clove_at(xs, cy2, 0.0)
+    el = 2 * R + 0.12
+    pts += [[0.0, yhi + el + 0.42, 0.25], [-0.05, ya2 - 0.25, LW + 0.25], [xs * 0.35, ya2, LW + 0.08], [xs, ya2, LW]] + c2[1:] + [[xs + 0.7, ye2, LW], [xs + 1.4, ye2, LW]]
+    pts = _dedupe(pts)
+    objs = [{'type': 'pole', 'axis': 'y', 'c': [-xs, 0, 0], 'radius': LP, 'len': 8.0},
+            {'type': 'pole', 'axis': 'y', 'c': [xs, 0, 0], 'radius': LP, 'len': 8.0}]
+    return {'ropes': [{'color': 'b', 'pts': pts}], 'code': None, 'objects': objs, 'relax': 'gaps',
+            'marks': {'clove': (0, k_clove), 'turns': (0, k_turns), 'frap': (0, k_frap), 'end': (0, len(pts) - 1)}}
+
+
+def square_lashing():
+    """Vertical pole behind a horizontal one. Clove hitch on the upright below the
+    crossbar, three wrapping turns, two frapping turns between the poles, clove
+    hitch on the crossbar."""
+    zH = LP + LP + 0.52                       # crossbar centre in front of the upright, leaving a gap
+    s = 2 * R + 0.04
+    zf0 = zH + LW
+    cy1 = -3.3
+    c1, (ya, ye) = _clove_at(0.0, cy1, 0.0)
+    pts = [[-2.2, ya, LW], [-1.5, ya, LW], [-0.8, ya, LW], [0.0, ya, LW]] + c1
+    k_clove = len(pts) - 1
+    xr0, yt0 = LW + 0.05, LP + R + 0.06
+    pts += [[0.45, ye, LW + 0.05], [xr0 - 0.05, ye + 0.4, LW + 0.5], [xr0 - 0.12, -2.3, 1.0], [xr0 - 0.15, -yt0 - 0.55, zf0 * 0.85], [xr0 - 0.05, -yt0 - 0.15, zf0]]
+    for k in range(3):
+        xr, yt = xr0 + k * s, yt0 + k * s
+        zf, zb = zf0 + k * s, -LW - k * s
+        rv = LW + k * s
+        c45 = 0.7071 * rv
+        side = max(xr * 0.7, LW + 0.03)
+        pts += [[xr, -yt, zf], [xr, 0.0, zf + 0.02], [xr, yt, zf],          # up in front of the crossbar, right
+                [xr, yt, 0.55 * zf], [side, yt, 0.0], [c45, yt, -c45], [0.0, yt, zb],   # behind the upright, high
+                [-c45, yt, -c45], [-side, yt, 0.0], [-xr, yt, 0.55 * zf],
+                [-xr, yt, zf], [-xr, 0.0, zf + 0.02], [-xr, -yt, zf],       # down in front, left
+                [-xr, -yt, 0.55 * zf], [-side, -yt, 0.0], [-c45, -yt, -c45], [0.0, -yt, zb],  # behind, low
+                [c45, -yt, -c45], [side, -yt, 0.0], [xr + 0.5 * s, -yt - 0.5 * s, 0.55 * zf]]
+    k_wraps = len(pts) - 1
+    zg = zH / 2                                  # middle of the gap between the poles
+    half = xr0 + 2 * s + 0.55
+    frap = []
+    for j in range(2):
+        h = half + j * (s + 0.1)
+        c = 0.32
+        frap += [[h, -h * 0.4, zg], [h, h - c, zg], [h - c * 0.3, h - c * 0.3, zg], [h - c, h, zg],
+                 [-h + c, h, zg], [-h + c * 0.3, h - c * 0.3, zg], [-h, h - c, zg],
+                 [-h, -h + c, zg], [-h + c * 0.3, -h + c * 0.3, zg], [-h + c, -h, zg], [h * 0.9, -h, zg]]
+    pts += [[xr0 + 2 * s + 0.2, -yt0 - 2 * s - 0.3, zg + 0.2]] + frap
+    k_frap = len(pts) - 1
+    # finish: clove hitch on the crossbar, to the right
+    core, ys, ye2, i_r, i_t = _clove_core(0.0, 0.0, LW, 2.3 * R, 'clove')
+    cxH = 3.75
+    c2 = [[cxH + p[1], -p[0], zH + p[2]] for p in core]      # axis turned to x; approach heads down the front
+    hm = half + s + 0.1
+    pts += [[hm + 0.3, -hm - 0.1, zg], [hm + 0.42, -0.9, zg - 0.05], [hm + 0.45, 0.0, zg - 0.08], [hm + 0.6, 0.85, zH - 0.1], [cxH + ys - 0.2, 0.95, zH + 0.15], [cxH + ys, 0.9, zH + LW], [cxH + ys, 0.0, zH + LW]] + c2 + \
+           [[cxH + ye2, -0.8, zH + LW], [cxH + ye2, -1.6, zH + LW]]
+    pts = _dedupe(pts)
+    objs = [{'type': 'pole', 'axis': 'y', 'c': [0, 0, 0], 'radius': LP, 'len': 8.0},
+            {"type": "pole", "axis": "x", "c": [0, 0, zH], "radius": LP, "len": 9.4}]
+    return {'ropes': [{'color': 'c', 'pts': pts}], 'code': None, 'objects': objs, 'relax': 'gaps',
+            'marks': {'clove': (0, k_clove), 'wraps': (0, k_wraps), 'frap': (0, k_frap), 'end': (0, len(pts) - 1)}}
+
+
+# ------------------------------------------------------------------ wave 3: fishing knots on a hook
+
+EYE_C, EYE_R, EYE_T = (0.0, 0.5), 0.34, 0.07
+SHANK_R = 0.08
+
+
+def _hook():
+    """A hook drawn large: eye at the top, shank down, bend and point."""
+    return [{'type': 'ring', 'c': [EYE_C[0], EYE_C[1], 0], 'radius': EYE_R, 'tube': EYE_T},
+            {'type': 'pole', 'axis': 'y', 'c': [0, -1.54, 0], 'radius': SHANK_R, 'len': 3.32, 'metal': True},
+            {'type': 'arc', 'c': [0.75, -3.2, 0], 'radius': 0.75, 'tube': SHANK_R, 'a0': math.pi, 'a1': 2 * math.pi},
+            {'type': 'pole', 'axis': 'y', 'c': [1.5, -2.75, 0], 'radius': SHANK_R, 'len': 0.9, 'metal': True}]
+
+
+def _clinch(improved=False, turns=5):
+    """Line through the eye, the tag end twisted round the standing line, back
+    through the small loop by the eye (and, improved, back through the big loop)."""
+    ey = EYE_C[1]
+    zs = 0.2                                   # standing line runs just in front of the eye plane
+    pitch = 2 * R + 0.06
+    y0 = ey + EYE_R + 0.75                     # wraps start above the small loop
+    rho = 2 * R + 0.03
+    pts = [[0.05, 6.4, zs], [0.03, 5.0, zs], [0.0, y0 + 0.3, zs], [0.0, ey + 0.5, zs + 0.12], [0.0, ey + 0.05, 0.08],
+           [0.0, ey - 0.08, -0.25], [0.02, ey + 0.35, -0.42], [0.08, y0 - 0.45, -0.38]]
+    k_eye = 5
+    k_up = len(pts) - 1
+    m = 22 * turns
+    for k in range(m + 1):
+        t = k / m
+        a = math.pi + 2 * math.pi * turns * t           # starts behind the standing line
+        pts.append([rho * math.sin(a), y0 + pitch * turns * t, zs + rho * math.cos(a)])
+    k_wraps = len(pts) - 1
+    ytop = pts[-1][1]
+    # back down outside the wraps, on the right, to the small loop just above the eye
+    out = rho + 2 * R + 0.06
+    pts += [[out * 0.55, ytop + 0.32, zs + 0.15], [out * 1.05, ytop - 0.2, zs], [out, ytop - 0.6, zs], [out, y0 + 0.2, zs], [out * 0.9, ey + 0.95, 0.0],
+            [0.35, ey + 0.82, -0.08], [0.0, ey + 0.8, -0.1], [-0.4, ey + 0.82, -0.08]]
+    k_tuck = len(pts) - 1
+    if improved:
+        # back up through the big loop: between the return strand and the wraps, on the right
+        pts += [[-0.75, ey + 1.0, 0.05], [-0.7, ey + 1.3, 0.45], [-0.1, ey + 1.2, zs + 0.55], [out * 0.55, y0 - 0.25, zs + 0.35],
+                [out * 0.82, y0 - 0.2, -0.02], [out * 0.95, y0 - 0.05, -0.45], [out + 0.5, y0 + 0.05, -0.6]]
+    else:
+        pts += [[-0.8, ey + 0.9, 0.0], [-1.3, ey + 1.05, 0.05]]
+    pts = _dedupe(pts)
+    return {'ropes': [{'color': 'c' if improved else 'a', 'pts': pts}], 'code': None, 'objects': _hook(),
+            'marks': {'eye': (0, k_eye), 'up': (0, k_up), 'wraps': (0, k_wraps), 'tuck': (0, k_tuck), 'end': (0, len(pts) - 1)}}
+
+
+def clinch_knot():
+    return _clinch(False)
+
+
+def improved_clinch_knot():
+    return _clinch(True)
+
+
+def _double_3d(base, d=None, n0=(1.0, 0.0, 0.0)):
+    """Offset a 3D path both ways with a rotation-minimising frame.
+    Returns (A, B) as numpy arrays (same length as the resampled base)."""
+    import numpy as np
+    from knotlib import catmull_rom, resample
+    P, _ = resample(catmull_rom(base, per_seg=12), 0.04)
+    d = d or (R + 0.025)
+    T = np.gradient(P, axis=0)
+    T /= np.linalg.norm(T, axis=1)[:, None]
+    n = np.array(n0, float)
+    n -= n.dot(T[0]) * T[0]
+    n /= np.linalg.norm(n)
+    N = [n]
+    for i in range(1, len(P)):
+        n = N[-1] - N[-1].dot(T[i]) * T[i]
+        n /= np.linalg.norm(n)
+        N.append(n)
+    N = np.array(N)
+    return P + d * N, P - d * N, N
+
+
+
+
+
+def flat_overhand_bend():
+    """Offset overhand bend: the two ends laid side by side and tied together in one
+    overhand knot, both tails on the same side."""
+    base = [[-3.6, 0.0], [-2.2, 0.0], [-1.0, 0.0], [0.0, 0.02], [0.55, 0.27], [0.82, 0.75], [0.58, 1.22], [0.0, 1.32],
+            [-0.5, 1.02], [-0.56, 0.42], [-0.4, -0.3], [-0.05, -0.62], [0.32, -0.45], [0.36, 0.12], [0.4, 0.55],
+            [0.95, 0.8], [1.6, 0.78], [2.3, 0.72]]
+    base = _scale(base, 2.3, 4.2)
+    A, _, B = _doubled(base, 'uou', z_gain=1.35)
+    a = _dedupe(A[::3].tolist() + [A[-1].tolist()])
+    b = _dedupe(B[::3].tolist() + [B[-1].tolist()])
+    from knotlib import ctrl_arc_positions
+    cs = ctrl_arc_positions(base)
+    fr = {k: cs[i] / cs[-1] for k, i in (('start', 3), ('loop', 10), ('tuck', 15))}
+    return {'ropes': [{'color': 'a', 'pts': a}, {'color': 'b', 'pts': b}], 'code': None, 'objects': [],
+            'fractions': fr, 'marks': {'a': (0, len(a) - 1), 'b': (1, len(b) - 1)}}

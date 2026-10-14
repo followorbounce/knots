@@ -30,6 +30,23 @@
 - Site: best-for activity pages (/for/<activity>/), glossary links in step text,
   sRGB colour fix in the bench.
 
+## 2026-10-13: Wave 3 (8 more knots, 40 total)
+- Bends: Fisherman's Knot, Water Knot, Blood Knot, Flat Overhand Bend.
+- Lashings (new chapter): Sheer Lashing, Square Lashing.
+- Fishing: Clinch Knot, Improved Clinch Knot, on a modelled hook (eye ring,
+  metal shank, `arc` object for the bend).
+- Check: `expect_each` in knots.py tests each rope on its own (e.g. each half of
+  a fisherman's knot is an overhand, each blood-knot line alone is unknotted).
+- Engine: `push_out` keeps relaxed rope out of poles; knots with poles can use
+  `'relax': 'gaps'` (crossing lift only) when their raw geometry is clean.
+
+## Still to do from wave 3
+Carrick Bend (build from the 3-lead 4-bight Turk's head generator in wave 4),
+Hunter's Bend, Ashley's Bend, Double and Tucked Sheet Bends, Rope Yarn Knot,
+Lanyard Knot, Diagonal Lashing, Palomar Knot (first model was ambiguous at its
+crossings and was dropped), Snelling a Hook, Blood Dropper Loop, Bimini Twist,
+nets.
+
 ## Still to do from the stopper/binding/hitch/loop chapters
 Sink stopper, true lover's knot, sailor's cross, surgeon's knot (and with second
 tuck), turquoise turtle, packer's knot, boa knot, pedigree cow hitch, cow hitch

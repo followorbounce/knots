@@ -390,6 +390,13 @@ def main():
                 kt = 'type %s ok' % k['expect']
             else:
                 probs.append('knot type is not %s (Jones %s)' % (k['expect'], knotlib.jones_str(V)))
+        if k.get('expect_each'):
+            for ri, name in enumerate(k['expect_each']):
+                V = knotlib.jones([built['ropes'][ri]], [(0, 1)])
+                if knotlib.knot_type_ok(V, name):
+                    kt += ' rope%d %s ok' % (ri, name)
+                else:
+                    probs.append('rope %d is not %s (Jones %s)' % (ri, name, knotlib.jones_str(V)))
         status = 'ok' if not probs else '; '.join(probs)
         print('%-34s %3d crossings  %s %s' % (k['slug'], len(built['crossings']), status, kt))
         bad = bad or bool(probs)
