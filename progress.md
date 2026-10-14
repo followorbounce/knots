@@ -112,6 +112,16 @@ Tag dump per step (check captions):
     for k in KNOTS:
         n,b=build.build_knot(k);print(k['slug'],[''.join('O' if t['over'] else 'U' for t in knotlib.step_tags(n,b,i)) for i in range(len(n['steps']))])"
 
+## 2026-10-14: Cow Hitch restored to the bight-over-the-legs structure (owner: "the ends must be on the other side of the middle part")
+The 2026-10-13 "topology corrected" change was itself wrong: it wound each side the other way, so the legs
+hung in front of a loose bight under the rail. Traced against the owner's reference picture
+(_todo/Cow-Hitch-Lark's-Head-Knot-Instructions.jpg): the end crosses IN FRONT of the standing part below the
+rail, then goes up the back, over the top and down the front BEHIND that crossing. So each leg runs up between
+the bight and the rail, over the top, down the back, under the rail, and back to the front as the bight, which
+lies over both legs. This is the model of commit 7340355, restored with its captions (and Pedigree Cow Hitch
+built on it). Do not flip it again: both windings have zero net turns round the rail, so the checker cannot
+tell them apart; the reference picture can. Final 3D render checked by canvas capture.
+
 ## 2026-10-13: Cow Hitch redrawn (owner report: "just not a knot")
 The old model was topologically a lark's head, but the bight hung loose below the rail
 and each leg vanished into the rail's underside, so the picture read as a U draped over
