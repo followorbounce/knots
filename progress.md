@@ -132,3 +132,13 @@ picture of the tied knot, not only after the checker passes.
 - Redrawn and released: Half Hitch (looser hitch, clean exit), Square Lashing (poles
   1:7 to rope like real spars; turns go over the crossbar and straight back between the
   poles; frapping turns sit in the gap round the bundle).
+
+## 2026-10-13: Cow Hitch topology corrected (owner: "the physics/topology is still wrong")
+The previous redraw wound each side the wrong way: the leg ran up the face of the rail
+under the bight and then over the top, which is an upside-down cow hitch with its legs
+folded back, not a cow hitch. Both versions have zero net winding round the rail, so the
+winding check could not tell them apart. Correct structure (tying with a bight, legs
+pulled through): from each leg upward the rope goes under the rail to the front, up the
+front, over the top and down the back to the bight; the bight sits just under the rail at
+the back, outside both legs. Seen from the front: two loops over the rail and the legs
+between them, as in the owner's reference picture. Pedigree Cow Hitch rebuilt on it.
