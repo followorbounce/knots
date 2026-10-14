@@ -120,3 +120,12 @@ full turn (over the top, down the back, under, up the front outside the leg), an
 bight lies flat across the front over both legs, the standard view of the hitch. Net winding
 round the rail is 0, as for a real cow hitch. Pedigree Cow Hitch rebuilt on it (tuck
 goes up between the legs and the bight, then down in front). Captions updated.
+
+## 2026-10-13: Visual audit of all 75 (owner: "half of the knots are not knots")
+Rendered every final 3D view and reviewed it against how the knot is actually tied.
+Clearance + Jones checks do not catch "does not read as the knot". 14 failed and are
+listed in `knots.REDRAW`: their pages carry a "Drawing being redrawn" notice and they
+are left out of the homepage feed until each is redrawn and checked against a reference
+picture. Minor: the eye of Figure-Eight Loop / Threaded Figure-Eight Loop is angular.
+New rule: a knot ships only after its final render has been compared with a reference
+picture of the tied knot, not only after the checker passes.

@@ -253,3 +253,5 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
 .term { text-decoration: underline dotted; text-underline-offset: 3px; color: inherit; }
 .acts { align-items: center; font: 500 12px var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); gap: 8px; }
 .acts .chip { text-transform: none; letter-spacing: 0; font-size: 13px; padding: 9px 11px; }
+
+.redraw{margin:0 0 14px;padding:12px 14px;border-left:4px solid #c8261d;background:rgba(200,38,29,.08);font-size:15px;line-height:1.5}

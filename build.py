@@ -15,7 +15,7 @@ import sys
 
 import geometry
 import knotlib
-from knots import KNOTS, CHAPTERS, ACTIVITIES, JOBS, SAFETY
+from knots import KNOTS, CHAPTERS, ACTIVITIES, JOBS, SAFETY, REDRAW
 import basics
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -178,6 +178,9 @@ def knot_page(k, knot, built, by_slug):
     aka = ('<p class="aka">Also called %s</p>' % ', '.join(E(a) for a in k['aka'])) if k['aka'] else ''
     safety = ('<p class="safety" role="note">%s</p>' % E(SAFETY)) if SAFETY in k['cautions'] else ''
     cautions = [c for c in k['cautions'] if c != SAFETY]
+    NOTICE = ('<p class="redraw" role="note"><b>Drawing being redrawn.</b> This 3D model does not yet show the knot '
+              'clearly enough to learn from. Use the written steps for now; the corrected drawing will replace it.</p>'
+              if k['slug'] in REDRAW else '')
     body = f'''
 <article class="knot" data-slug="{k['slug']}">
   <div class="knot-head">
@@ -193,7 +196,7 @@ def knot_page(k, knot, built, by_slug):
     </dl>
   </div>
 
-  <section class="bench" aria-label="Step-by-step tying">
+  {NOTICE}<section class="bench" aria-label="Step-by-step tying">
     <div class="stage" id="stage">
       <div class="view3d" id="view3d"><p class="hint" id="hint">Drag to turn the knot. Scroll or pinch to zoom.</p></div>
       <div class="view2d" id="view2d" hidden>{diagrams}</div>
@@ -373,6 +376,8 @@ def write_feed(items):
     os.makedirs(os.path.join(ROOT, 'feed'), exist_ok=True)
     index = []
     for k, knot, built in items:
+        if k['slug'] in REDRAW:
+            continue
         ropes = []
         for i, P in enumerate(built['ropes']):
             Q = P[::3] if len(P) > 3 else P

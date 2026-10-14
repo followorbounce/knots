@@ -1339,3 +1339,11 @@ B2 = [
         ('end', 'Pull the hitch snug and trim the tag.', {'tighten': True, 'notags': True})]),
 ]
 KNOTS += B2
+
+
+# Knots whose drawing does not yet read as the knot (visual audit 2026-10-13). Their pages
+# carry a notice and they are left out of the homepage feed until each one is redrawn and
+# checked against a reference picture of the tied knot.
+REDRAW = {'back-splice', 'eye-splice', 'short-splice', 'crown-knot', 'wall-knot', 'monkeys-fist',
+          'blood-knot', 'blood-dropper-loop', 'highwaymans-hitch', 'cow-hitch-toggle', 'square-lashing',
+          'round-sennit-4', 'square-sennit-8', 'half-hitch'}
