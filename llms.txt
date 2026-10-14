@@ -64,7 +64,7 @@ Interactive 3D guide to tying knots.
 - [Flat Seizing](https://followorbounce.github.io/knots/knots/seizing/): Binds two parts of rope side by side with twine: tight turns round both, then frapping turns between them to draw the turns tight
 - [Marlinspike Hitch](https://followorbounce.github.io/knots/knots/marlinspike-hitch/): A loop laid over the line with a spike or rod pushed through it: over the loop, under the line, over the loop
 - [Mirrored Rolling Hitch](https://followorbounce.github.io/knots/knots/mirrored-rolling-hitch/): The rolling hitch tied as its mirror image, for a pull coming from the opposite side
-- [Pedigree Cow Hitch](https://followorbounce.github.io/knots/knots/pedigree-cow-hitch/): A cow hitch made secure for a pull on one leg only: the free end is tucked back up under the bight, so it cannot slide out.
+- [Pedigree Cow Hitch](https://followorbounce.github.io/knots/knots/pedigree-cow-hitch/): A cow hitch made secure for a pull on one leg only: the free end is tucked back up between the legs and under the bight, so it cannot slide out.
 - [Cow Hitch with Toggle](https://followorbounce.github.io/knots/knots/cow-hitch-toggle/): A cow hitch through a ring where a wooden toggle takes the place of the ends: the bight is caught round the toggle
 - [Bowline with Stopper](https://followorbounce.github.io/knots/knots/bowline-with-stopper/): A bowline with its tail tied in an overhand knot round the leg of the eye beside it, so the bowline cannot shake loose when it is not loaded.
 - [Double Sheet Bend](https://followorbounce.github.io/knots/knots/double-sheet-bend/): A sheet bend with a second turn of the thinner rope round the bight

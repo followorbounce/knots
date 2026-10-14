@@ -112,15 +112,21 @@ Tag dump per step (check captions):
     for k in KNOTS:
         n,b=build.build_knot(k);print(k['slug'],[''.join('O' if t['over'] else 'U' for t in knotlib.step_tags(n,b,i)) for i in range(len(n['steps']))])"
 
-## 2026-10-14: Cow Hitch restored to the bight-over-the-legs structure (owner: "the ends must be on the other side of the middle part")
-The 2026-10-13 "topology corrected" change was itself wrong: it wound each side the other way, so the legs
-hung in front of a loose bight under the rail. Traced against the owner's reference picture
-(_todo/Cow-Hitch-Lark's-Head-Knot-Instructions.jpg): the end crosses IN FRONT of the standing part below the
-rail, then goes up the back, over the top and down the front BEHIND that crossing. So each leg runs up between
-the bight and the rail, over the top, down the back, under the rail, and back to the front as the bight, which
-lies over both legs. This is the model of commit 7340355, restored with its captions (and Pedigree Cow Hitch
-built on it). Do not flip it again: both windings have zero net turns round the rail, so the checker cannot
-tell them apart; the reference picture can. Final 3D render checked by canvas capture.
+## 2026-10-14: Cow Hitch rebuilt from the reference picture, crossing by crossing (owner: still wrong, twice)
+Reference: _todo/Cow-Hitch-Lark's-Head-Knot-Instructions.jpg, viewed from the side of the two loops.
+Traced: the standing leg hangs BEHIND the rail (the rail hides it); the rope climbs the back, comes over the
+top towards the viewer, down the front, under the rail and back; the crossing piece (bight) passes BEHIND the
+standing leg; the other side mirrors it and comes down the back between the rail and the bight. So:
+bight on the back, outside both legs; each leg makes one full turn going UP the bight's face first.
+- The 10-13 "topology corrected" model wound each leg the other way (under the rail first): its bight can
+  ride up and free the legs, so it is not a hitch.
+- The 7340355 model (restored earlier today) had the right structure but was shown from the bight's side,
+  so it did not look like the picture.
+New `cow_hitch()` is drawn explicitly round the rail (`_ring(phi, r)`, 0 = top, 90 = front) and shown from
+the loops side, tightened as in the picture's last step. Pedigree Cow Hitch: legs spaced wider so the tuck
+goes up between the two legs, under the bight, and down outside it. Rendered from front, back, below and
+above (canvas capture with the coordinates rotated) and compared with the picture; checker clean.
+Both windings have zero net turns round the rail, so no automatic check can tell them apart.
 
 ## 2026-10-13: Cow Hitch redrawn (owner report: "just not a knot")
 The old model was topologically a lark's head, but the bight hung loose below the rail
