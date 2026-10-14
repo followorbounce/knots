@@ -245,38 +245,75 @@ def _ring_y(x):
     return RING_C[1] - math.sqrt(RING_R ** 2 - x ** 2)
 
 
-def round_turn_two_half_hitches():
+def _ring_hitch(laps=1.5, toward_ring=False, yc=-1.25, single=False):
+    """A turn (or round turn) on the bottom of a ring, then a clove hitch round the
+    standing part. toward_ring=True builds the clove upward, toward the ring
+    (buntline hitch); otherwise downward, away from it (two half hitches)."""
     rho = RING_T + R + 0.02
     xs = -0.32
     pts = [[xs, -3.4, rho], [xs, -2.0, rho], [xs, -0.9, rho], [xs, _ring_y(xs) - 0.5, rho]]
     k0 = len(pts)
-    # round turn: 1.5 laps round the bottom of the ring, moving right
-    n = 34
+    shift = 0.62 * laps / 1.5
+    n = int(23 * laps)
     for k in range(n + 1):
         t = k / n
-        a = 3 * math.pi * t
-        x = xs + 0.62 * t
+        a = 2 * math.pi * laps * t
+        x = xs + shift * t
         pts.append([x, _ring_y(x) + rho * math.sin(a), rho * math.cos(a)])
     i_rt = len(pts) - 1
-    xe = xs + 0.62
-    # end drops down behind, swings right and comes to the front of the standing part
-    cx, cz = xs, rho                       # half hitches are tied round the standing part
+    xe = xs + shift
+    cx, cz = xs, rho
     rho2 = 2 * R + 0.03
-    yc = -1.25
-    pts += [[xe + 0.05, 0.05, -0.2], [xe + 0.4, -0.45, 0.1], [cx + 1.05, yc + 0.17, cz + rho2], [cx + 0.5, yc + 0.17, cz + rho2]]
-    i_down = len(pts) - 1
     core, ys, ye, i_r, i_t = _clove_core(0.0, 0.0, rho2, 2.3 * R, 'clove')
-    # mirror the clove (approach from the right) and move it onto the standing part
-    core = [[cx - p[0], yc + p[1], cz + p[2]] for p in core]
-    pts += [[cx, yc + ys, cz + rho2]]
+    sy = -1 if toward_ring else 1
+    core = [[cx - p[0], yc + sy * p[1], cz + p[2]] for p in core]
+    y_in = yc + sy * ys
+    if toward_ring:
+        pts += [[xe + 0.1, 0.05, -0.22], [xe + 0.5, -0.6, -0.1], [cx + 1.05, yc - 0.5, cz + 0.3],
+                [cx + 1.0, y_in, cz + rho2], [cx + 0.5, y_in, cz + rho2]]
+    else:
+        pts += [[xe + 0.05, 0.05, -0.2], [xe + 0.4, -0.45, 0.1], [cx + 1.05, y_in, cz + rho2], [cx + 0.5, y_in, cz + rho2]]
+    i_down = len(pts) - 1
+    pts += [[cx, y_in, cz + rho2]]
     s0 = len(pts)
+    if single:
+        # one half hitch: round the standing part, across over itself, and away
+        pts += core[:i_r + 26]
+        last = pts[-1]
+        pts += [[last[0] - 0.35, last[1] - 0.25, last[2] - 0.05], [cx - 0.9, yc - 0.9, 0.3], [cx - 1.0, yc - 1.8, 0.3]]
+        pts = _dedupe(pts)
+        return {'ropes': [{'color': 'b', 'pts': pts}], 'code': None,
+                'objects': [{'type': 'ring', 'c': [RING_C[0], RING_C[1], 0], 'radius': RING_R, 'tube': RING_T}],
+                'marks': {'stand': (0, k0), 'turn': (0, i_rt), 'down': (0, i_down), 'end': (0, len(pts) - 1)}}
     pts += core
     i_hh1 = s0 + i_r + 26
-    pts += [[cx - 0.5, yc + ye, cz + rho2], [cx - 0.95, yc - 0.3, cz + rho2 * 0.7], [cx - 1.1, yc - 1.2, 0.3], [cx - 1.15, yc - 2.0, 0.3]]
+    y_out = yc + sy * ye
+    if toward_ring:
+        pts += [[cx - 0.5, y_out, cz + rho2], [cx - 0.85, y_out + 0.25, cz + rho2 * 0.8], [cx - 0.95, y_out + 0.75, 0.32],
+                [cx - 0.95, y_out + 1.05, 0.32]]
+    else:
+        pts += [[cx - 0.5, y_out, cz + rho2], [cx - 0.95, yc - 0.3, cz + rho2 * 0.7], [cx - 1.1, yc - 1.2, 0.3],
+                [cx - 1.15, yc - 2.0, 0.3]]
     pts = _dedupe(pts)
     return {'ropes': [{'color': 'a', 'pts': pts}], 'code': None,
             'objects': [{'type': 'ring', 'c': [RING_C[0], RING_C[1], 0], 'radius': RING_R, 'tube': RING_T}],
             'marks': {'stand': (0, k0), 'turn': (0, i_rt), 'down': (0, i_down), 'hh1': (0, i_hh1), 'end': (0, len(pts) - 1)}}
+
+
+def round_turn_two_half_hitches():
+    return _ring_hitch(1.5)
+
+
+def two_half_hitches():
+    return _ring_hitch(0.5)
+
+
+def half_hitch():
+    return _ring_hitch(0.5, single=True)
+
+
+def buntline_hitch():
+    return _ring_hitch(0.5, toward_ring=True, yc=-1.6)
 
 
 def double_fishermans():
@@ -694,3 +731,31 @@ def round_turn_bowline():
     return {'ropes': [{'color': 'b', 'pts': p}], 'code': 'ouuuoouuoouu', 'objects': [],
             'marks': {'stand': (0, 4), 'loop1': (0, 11), 'loop2': (0, 19), 'eye': (0, 26), 'up': (0, 31),
                       'round': (0, 35), 'down': (0, len(p) - 1)}}
+
+
+def timber_hitch():
+    """Round a vertical pole: the rope goes round the pole, the end takes a turn
+    round the standing part, then is twisted three times round its own turn."""
+    rho = WRAP
+    lift = 0.34
+    P = math.pi
+    S = [[-3.2, 0.0, 1.25], [-2.2, 0.0, 0.95], [-1.3, 0.0, 0.52], [-0.85, 0.0, 0.2]]
+    zc = rho + lift
+
+    def chord(a, t):
+        d = a + 2 * P
+        flat = zc / math.cos(d) if abs(d) < 1.2 else rho
+        w = 1.0 if abs(d) <= 0.6 else max(0.0, 1 - (abs(d) - 0.6) / 0.6)
+        w = w * w * (3 - 2 * w)
+        return rho + (flat - rho) * w
+    loop = coil_y(0, 0, rho, -0.5 * P, -2 * P - 0.75, 0.0, 0.0, n=44, rho_fn=chord)
+    k_loop = len(S) + len(loop) - 1
+    around = [[-0.95, 0.06, zc], [-1.22, 0.4, 0.75], [-1.32, 0.05, 0.18], [-1.2, -0.38, 0.5], [-0.92, -0.34, zc]]
+    k_around = k_loop + len(around)
+    dog = coil_x(0.0, zc, 2 * R + 0.03, 1.5 * P, 1.5 * P + 6 * P, -0.42, 0.42, n=72)
+    tail = [[0.95, -0.36, zc - 0.05], [1.8, -0.42, zc - 0.15], [2.7, -0.48, zc - 0.25]]
+    pts = _dedupe(S + loop + around + dog + tail)
+    return {'ropes': [{'color': 'c', 'pts': pts}], 'code': None,
+            'objects': [{'type': 'pole', 'axis': 'y', 'c': [0, 0, 0], 'radius': POLE, 'len': 3.4}],
+            'marks': {'stand': (0, len(S) - 1), 'loop': (0, k_loop), 'around': (0, k_around),
+                      'end': (0, len(pts) - 1)}}

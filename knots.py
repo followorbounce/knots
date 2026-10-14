@@ -635,3 +635,88 @@ W2 = [
     },
 ]
 KNOTS += W2
+
+W2B = [
+    {
+        'slug': 'half-hitch', 'geo': 'half_hitch', 'name': 'Half Hitch', 'aka': [],
+        'chapter': 'hitch', 'jobs': ['attach'], 'acts': ['Household', 'Camping', 'Sailing'],
+        'difficulty': 1, 'security': 'Low', 'untie': 'Easy',
+        'brief': 'The simplest hitch: the end goes round the standing part and across itself. On its own it is not secure, '
+                 'but it is the building block of many hitches and the usual way to finish one.',
+        'uses': ['Finishing another knot, or backing one up.', 'A momentary hold while you tie something better.',
+                 'Two of them in a row make the Two Half Hitches.'],
+        'cautions': ['A single half hitch can slip or spill. Do not trust it alone with a load.'],
+        'untie_how': 'Slack the standing part and pull the end back out.',
+        'related': [('two-half-hitches', 'Two together: a useful hitch.'), ('round-turn-two-half-hitches', 'With a round turn first.'),
+                    ('clove-hitch', 'Two half hitches round a post.')],
+        'steps': [
+            ('stand', 'Pass the end through the ring from front to back.'),
+            ('turn', 'Bring it down behind the standing part.'),
+            ('down', 'Bring it round to the front of the standing part.'),
+            ('end', 'Take it round the standing part and across over itself.'),
+            ('end', 'Pull the end snug against the standing part.', {'tighten': True}),
+        ],
+    },
+    {
+        'slug': 'two-half-hitches', 'geo': 'two_half_hitches', 'name': 'Two Half Hitches', 'aka': [],
+        'chapter': 'hitch', 'jobs': ['attach'], 'acts': ['Sailing', 'Camping', 'Household'],
+        'difficulty': 1, 'security': 'Moderate', 'untie': 'Easy',
+        'brief': 'A turn through a ring or round a post, then two half hitches round the standing part, both the same way. '
+                 'Together the half hitches form a clove hitch on the standing part.',
+        'uses': ['Tying a line to a ring, a post or an eye.', 'Finishing a tie-down or a guy line.'],
+        'cautions': ['Make both half hitches in the same direction, or you get a cow hitch that slips.',
+                     'For a load you need to ease off, add a round turn first.'],
+        'untie_how': 'Undo the two half hitches and pull the end back through the ring.',
+        'related': [('round-turn-two-half-hitches', 'With a round turn to take the load.'), ('buntline-hitch', 'The hitches tied toward the ring.'),
+                    ('half-hitch', 'One on its own.')],
+        'steps': [
+            ('stand', 'Pass the end through the ring from front to back.'),
+            ('turn', 'Bring it down behind the standing part.'),
+            ('down', 'Bring it round to the front.'),
+            ('hh1', 'First half hitch: round the standing part and across over itself.'),
+            ('end', 'Second half hitch, the same way, below the first. Tuck the end under.'),
+            ('end', 'Slide the hitches up to the ring and pull them snug.', {'tighten': True}),
+        ],
+    },
+    {
+        'slug': 'buntline-hitch', 'geo': 'buntline_hitch', 'name': 'Buntline Hitch', 'aka': [],
+        'chapter': 'hitch', 'jobs': ['attach'], 'acts': ['Sailing', 'Household'],
+        'difficulty': 2, 'security': 'High', 'untie': 'Hard',
+        'brief': 'Two half hitches tied back toward the ring instead of away from it, so the second hitch is trapped inside '
+                 'the first. It holds even when the line flogs and shakes, but it jams.',
+        'uses': ['Tying a line to a ring, shackle or eye that will be shaken about, such as a flag halyard.',
+                 'Slippery modern line where two half hitches would work loose.'],
+        'cautions': ['It can jam hard after a heavy load.', 'Snug it right up against the ring before loading.'],
+        'untie_how': 'Push the knot away from the ring to loosen it, then work the end back out.',
+        'related': [('two-half-hitches', 'The same hitches tied away from the ring.'),
+                    ('clove-hitch', 'What the two hitches form round the standing part.')],
+        'steps': [
+            ('stand', 'Pass the end through the ring from front to back.'),
+            ('turn', 'Bring it down behind the standing part, below where the knot will be.'),
+            ('down', 'Bring it round to the front of the standing part.'),
+            ('hh1', 'First half hitch: round the standing part and across over itself, working up toward the ring.'),
+            ('end', 'Second half hitch above the first, nearer the ring. The end finishes pointing toward the ring.'),
+            ('end', 'Push the knot up to the ring and pull the end hard to set it.', {'tighten': True}),
+        ],
+    },
+    {
+        'slug': 'timber-hitch', 'geo': 'timber_hitch', 'name': 'Timber Hitch', 'aka': [],
+        'chapter': 'binding', 'jobs': ['attach', 'bind'], 'acts': ['Camping', 'Gardening'],
+        'difficulty': 1, 'security': 'High while loaded', 'untie': 'Easy',
+        'brief': 'A noose that grips a log, a pole or a bundle: the end goes round the standing part and is twisted back round '
+                 'its own turn. The harder the pull, the tighter it grips, and it falls apart as soon as the load is off.',
+        'uses': ['Dragging or lifting a log or a pole.', 'Starting a diagonal lashing.', 'Gathering a bundle of canes or sticks.'],
+        'cautions': ['It only holds while the standing part is loaded. Add a half hitch further along to keep a pole straight when towing.',
+                     'Make at least three twists; more on smooth or slippery poles.'],
+        'untie_how': 'Slack the standing part and the twists unroll.',
+        'related': [('clove-hitch', 'Holds without a constant load.'), ('half-hitch', 'Add one to steady a towed pole.')],
+        'steps': [
+            ('stand', 'Bring the rope to the pole from the left, in front.'),
+            ('loop', 'Take it round behind the pole and back to the front.'),
+            ('around', 'Pass the end round the standing part.'),
+            ('end', 'Twist the end three times round its own turn, against the pole.', {'notags': True}),
+            ('end', 'Pull the standing part. The turn closes and traps the twists.', {'tighten': True, 'notags': True}),
+        ],
+    },
+]
+KNOTS += W2B

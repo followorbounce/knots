@@ -32,6 +32,10 @@ Interactive 3D guide to tying knots.
 - [Double Overhand Noose](https://followorbounce.github.io/knots/knots/double-overhand-noose/): A running loop held by a double overhand tied round the standing part
 - [Cow Hitch](https://followorbounce.github.io/knots/knots/cow-hitch/): A bight of rope dropped round a rail with both legs pulled through it
 - [Round Turn Bowline](https://followorbounce.github.io/knots/knots/round-turn-bowline/): A bowline with the small loop taken twice round
+- [Half Hitch](https://followorbounce.github.io/knots/knots/half-hitch/): The simplest hitch: the end goes round the standing part and across itself
+- [Two Half Hitches](https://followorbounce.github.io/knots/knots/two-half-hitches/): A turn through a ring or round a post, then two half hitches round the standing part, both the same way
+- [Buntline Hitch](https://followorbounce.github.io/knots/knots/buntline-hitch/): Two half hitches tied back toward the ring instead of away from it, so the second hitch is trapped inside the first
+- [Timber Hitch](https://followorbounce.github.io/knots/knots/timber-hitch/): A noose that grips a log, a pole or a bundle: the end goes round the standing part and is twisted back round its own turn
 
 ## Basics
 
