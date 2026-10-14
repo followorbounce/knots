@@ -826,7 +826,7 @@ W3 = [
         ],
     },
     {
-        'slug': 'geo': 'square_lashing', 'name': 'Square Lashing', 'aka': [],
+        'slug': 'square-lashing', 'geo': 'square_lashing', 'name': 'Square Lashing', 'aka': [],
         'chapter': 'lashing', 'jobs': ['bind'], 'acts': ['Camping', 'Gardening'],
         'difficulty': 2, 'security': 'High', 'untie': 'Easy',
         'brief': 'Lashes two poles that cross at right angles, for frames, tables, gates and trellises. A clove hitch, three wrapping '
