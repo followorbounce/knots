@@ -826,7 +826,7 @@ W3 = [
         ],
     },
     {
-        'slug': 'square-lashing', 'geo': 'square_lashing', 'name': 'Square Lashing', 'aka': [],
+        'slug': 'geo': 'square_lashing', 'name': 'Square Lashing', 'aka': [],
         'chapter': 'lashing', 'jobs': ['bind'], 'acts': ['Camping', 'Gardening'],
         'difficulty': 2, 'security': 'High', 'untie': 'Easy',
         'brief': 'Lashes two poles that cross at right angles, for frames, tables, gates and trellises. A clove hitch, three wrapping '
@@ -1345,5 +1345,5 @@ KNOTS += B2
 # carry a notice and they are left out of the homepage feed until each one is redrawn and
 # checked against a reference picture of the tied knot.
 REDRAW = {'back-splice', 'eye-splice', 'short-splice', 'crown-knot', 'wall-knot', 'monkeys-fist',
-          'blood-knot', 'blood-dropper-loop', 'highwaymans-hitch', 'cow-hitch-toggle', 'square-lashing',
-          'round-sennit-4', 'square-sennit-8', 'half-hitch'}
+          'blood-knot', 'blood-dropper-loop', 'highwaymans-hitch', 'cow-hitch-toggle',
+          'round-sennit-4', 'square-sennit-8'}

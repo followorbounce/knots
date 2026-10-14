@@ -129,3 +129,6 @@ are left out of the homepage feed until each is redrawn and checked against a re
 picture. Minor: the eye of Figure-Eight Loop / Threaded Figure-Eight Loop is angular.
 New rule: a knot ships only after its final render has been compared with a reference
 picture of the tied knot, not only after the checker passes.
+- Redrawn and released: Half Hitch (looser hitch, clean exit), Square Lashing (poles
+  1:7 to rope like real spars; turns go over the crossbar and straight back between the
+  poles; frapping turns sit in the gap round the bundle).

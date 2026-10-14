@@ -245,7 +245,7 @@ def _ring_y(x):
     return RING_C[1] - math.sqrt(RING_R ** 2 - x ** 2)
 
 
-def _ring_hitch(laps=1.5, toward_ring=False, yc=-1.25, single=False):
+def _ring_hitch(laps=1.5, toward_ring=False, yc=-1.25, single=False, rho2=None):
     """A turn (or round turn) on the bottom of a ring, then a clove hitch round the
     standing part. toward_ring=True builds the clove upward, toward the ring
     (buntline hitch); otherwise downward, away from it (two half hitches)."""
@@ -263,7 +263,7 @@ def _ring_hitch(laps=1.5, toward_ring=False, yc=-1.25, single=False):
     i_rt = len(pts) - 1
     xe = xs + shift
     cx, cz = xs, rho
-    rho2 = 2 * R + 0.03
+    rho2 = rho2 or 2 * R + 0.03
     core, ys, ye, i_r, i_t = _clove_core(0.0, 0.0, rho2, 2.3 * R, 'clove')
     sy = -1 if toward_ring else 1
     core = [[cx - p[0], yc + sy * p[1], cz + p[2]] for p in core]
@@ -280,7 +280,8 @@ def _ring_hitch(laps=1.5, toward_ring=False, yc=-1.25, single=False):
         # one half hitch: round the standing part, across over itself, and away
         pts += core[:i_r + 26]
         last = pts[-1]
-        pts += [[last[0] - 0.35, last[1] - 0.25, last[2] - 0.05], [cx - 0.9, yc - 0.9, 0.3], [cx - 1.0, yc - 1.8, 0.3]]
+        pts += [[last[0] - 0.08, last[1] - 0.35, last[2] - 0.04], [last[0] - 0.14, last[1] - 0.95, 0.3],
+                [last[0] - 0.18, last[1] - 1.75, 0.3]]
         pts = _dedupe(pts)
         return {'ropes': [{'color': 'b', 'pts': pts}], 'code': None,
                 'objects': [{'type': 'ring', 'c': [RING_C[0], RING_C[1], 0], 'radius': RING_R, 'tube': RING_T}],
@@ -309,7 +310,7 @@ def two_half_hitches():
 
 
 def half_hitch():
-    return _ring_hitch(0.5, single=True)
+    return _ring_hitch(0.5, single=True, rho2=0.45, yc=-1.45)
 
 
 def buntline_hitch():
@@ -959,53 +960,70 @@ def sheer_lashing():
             'marks': {'clove': (0, k_clove), 'turns': (0, k_turns), 'frap': (0, k_frap), 'end': (0, len(pts) - 1)}}
 
 
-def square_lashing():
-    """Vertical pole behind a horizontal one. Clove hitch on the upright below the
-    crossbar, three wrapping turns, two frapping turns between the poles, clove
-    hitch on the crossbar."""
-    zH = LP + LP + 0.52                       # crossbar centre in front of the upright, leaving a gap
-    s = 2 * R + 0.04
-    zf0 = zH + LW
-    cy1 = -3.3
-    c1, (ya, ye) = _clove_at(0.0, cy1, 0.0)
-    pts = [[-2.2, ya, LW], [-1.5, ya, LW], [-0.8, ya, LW], [0.0, ya, LW]] + c1
+def square_lashing(P=1.1):
+    """Vertical pole behind a horizontal one, touching but for room for the frapping
+    turns. Clove hitch on the upright below the crossbar, three wrapping turns (in
+    front of the crossbar, behind the upright), two frapping turns pulled snug round
+    the wrapping turns between the poles, clove hitch on the crossbar."""
+    W = P + R + 0.015                          # rope centre distance from a pole axis
+    s = 2 * R + 0.04                           # spacing of turns laid side by side
+    g = 2 * R + 0.1                            # gap between the poles for the frapping turns
+    zH = 2 * P + g
+    zf0 = zH + W
+    cy1 = -(P + 2.6)
+    core, ys, ye, _, _ = _clove_core(0.0, 0.0, W, 2.3 * R, 'clove')
+    c1 = [[p[0], cy1 + p[1], p[2]] for p in core]
+    ya, ye = cy1 + ys, cy1 + ye
+    pts = [[-3.0, ya, W], [-2.0, ya, W], [-1.0, ya, W], [0.0, ya, W]] + c1
     k_clove = len(pts) - 1
-    xr0, yt0 = LW + 0.05, LP + R + 0.06
-    pts += [[0.45, ye, LW + 0.05], [xr0 - 0.05, ye + 0.4, LW + 0.5], [xr0 - 0.12, -2.3, 1.0], [xr0 - 0.15, -yt0 - 0.55, zf0 * 0.85], [xr0 - 0.05, -yt0 - 0.15, zf0]]
+    xr0, yt0 = P + R + 0.03, P + R + 0.03
+    pts += [[0.6, ye, W + 0.05], [xr0 + 0.1, ye + 0.35, W * 0.8], [xr0 + 0.05, -yt0 - 0.5, P + 0.3]]
     for k in range(3):
         xr, yt = xr0 + k * s, yt0 + k * s
-        zf, zb = zf0 + k * s, -LW - k * s
-        rv = LW + k * s
+        zf, zb = zf0 + k * s, -W - k * s
+        rv = W + k * s
         c45 = 0.7071 * rv
-        side = max(xr * 0.7, LW + 0.03)
-        pts += [[xr, -yt, zf], [xr, 0.0, zf + 0.02], [xr, yt, zf],          # up in front of the crossbar, right
-                [xr, yt, 0.55 * zf], [side, yt, 0.0], [c45, yt, -c45], [0.0, yt, zb],   # behind the upright, high
-                [-c45, yt, -c45], [-side, yt, 0.0], [-xr, yt, 0.55 * zf],
-                [-xr, yt, zf], [-xr, 0.0, zf + 0.02], [-xr, -yt, zf],       # down in front, left
-                [-xr, -yt, 0.55 * zf], [-side, -yt, 0.0], [-c45, -yt, -c45], [0.0, -yt, zb],  # behind, low
-                [c45, -yt, -c45], [side, -yt, 0.0], [xr + 0.5 * s, -yt - 0.5 * s, 0.55 * zf]]
+        side = xr if xr > rv else rv
+        q = 0.7071 * rv
+        zg2 = P + 0.5 * g                       # where the turn passes between the poles
+        def over(x, sy):
+            # up the front of the crossbar, over it, and back down between the poles beside the upright
+            return [[x, sy * q, zH + q], [x, sy * rv, zH], [x, sy * (rv * 0.85 + 0.25 * (yt - rv)), zH - q],
+                    [x, sy * yt, zg2]]
+        def behind(y, sx):
+            # round the back of the upright at height y, from side sx to -sx
+            return [[sx * side, y, 0.0]] + [[sx * rv * math.sin(a), y, rv * math.cos(a)]
+                                            for a in [math.pi * (0.5 + 0.125 * i) for i in range(1, 8)]] + [[-sx * side, y, 0.0]]
+        pts += over(xr, -1)[::-1] + [[xr, 0.0, zH + rv]] + over(xr, 1) + behind(yt, 1) + \
+               over(-xr, 1)[::-1] + [[-xr, 0.0, zH + rv]] + over(-xr, -1) + behind(-yt, -1)
     k_wraps = len(pts) - 1
-    zg = zH / 2                                  # middle of the gap between the poles
-    half = xr0 + 2 * s + 0.55
+    zg = P + g / 2                              # between the poles
+    zs = P - 0.02                               # frap sides, beside the upright and behind the crossbar
+    zt = P + R + 0.1                            # frap top and bottom, in front of the upright
+    hb = xr0 + 2 * s + R + 0.2                 # just outside the bundle of wrapping turns
     frap = []
     for j in range(2):
-        h = half + j * (s + 0.1)
-        c = 0.32
-        frap += [[h, -h * 0.4, zg], [h, h - c, zg], [h - c * 0.3, h - c * 0.3, zg], [h - c, h, zg],
-                 [-h + c, h, zg], [-h + c * 0.3, h - c * 0.3, zg], [-h, h - c, zg],
-                 [-h, -h + c, zg], [-h + c * 0.3, -h + c * 0.3, zg], [-h + c, -h, zg], [h * 0.9, -h, zg]]
-    pts += [[xr0 + 2 * s + 0.2, -yt0 - 2 * s - 0.3, zg + 0.2]] + frap
+        h = hb + j * s
+        c = 0.12
+        frap += [[h, -h + c, zs], [h, h - c, zs], [h - c * 0.3, h - c * 0.3, (zs + zt) / 2], [h - c, h, zt],
+                 [-h + c, h, zt], [-h + c * 0.3, h - c * 0.3, (zs + zt) / 2], [-h, h - c, zs],
+                 [-h, -h + c, zs], [-h + c * 0.3, -h + c * 0.3, (zs + zt) / 2], [-h + c, -h, zt], [P + 0.35, -h, zt],
+                 ([h - c, -h - 0.02, zt + 0.45] if j == 0 else [h + 0.15, -h - 0.45, zt + 0.05])]
+    pts += frap
     k_frap = len(pts) - 1
-    # finish: clove hitch on the crossbar, to the right
-    core, ys, ye2, i_r, i_t = _clove_core(0.0, 0.0, LW, 2.3 * R, 'clove')
-    cxH = 3.75
-    c2 = [[cxH + p[1], -p[0], zH + p[2]] for p in core]      # axis turned to x; approach heads down the front
-    hm = half + s + 0.1
-    pts += [[hm + 0.3, -hm - 0.1, zg], [hm + 0.42, -0.9, zg - 0.05], [hm + 0.45, 0.0, zg - 0.08], [hm + 0.6, 0.85, zH - 0.1], [cxH + ys - 0.2, 0.95, zH + 0.15], [cxH + ys, 0.9, zH + LW], [cxH + ys, 0.0, zH + LW]] + c2 + \
-           [[cxH + ye2, -0.8, zH + LW], [cxH + ye2, -1.6, zH + LW]]
+    # finish: clove hitch on the crossbar, to the right of the lashing
+    core2, ys2, ye2, _, _ = _clove_core(0.0, 0.0, W, 2.3 * R, 'clove')
+    cxH = hb + s + 1.6
+    c2 = [[cxH + p[1], -p[0], zH + p[2]] for p in core2]
+    hm = hb + s
+    xl = hm + 0.35                              # the lead runs up behind the crossbar, outside the lashing
+    zl = zH - P - R - 0.15
+    pts += [[xl - 0.15, -hm + 0.1, zt + 0.3], [xl, -P - 0.4, zl], [xl, 0.0, zl], [xl + 0.1, P + 0.35, zl + 0.15],
+            [cxH + ys2 - 0.3, W + 0.12, zH], [cxH + ys2, W * 0.74, zH + W * 0.74], [cxH + ys2, 0.0, zH + W]] + c2 + \
+           [[cxH + ye2, -1.0, zH + W], [cxH + ye2, -2.0, zH + W]]
     pts = _dedupe(pts)
-    objs = [{'type': 'pole', 'axis': 'y', 'c': [0, 0, 0], 'radius': LP, 'len': 8.0},
-            {"type": "pole", "axis": "x", "c": [0, 0, zH], "radius": LP, "len": 9.4}]
+    objs = [{'type': 'pole', 'axis': 'y', 'c': [0, 0, 0], 'radius': P, 'len': 9.0},
+            {'type': 'pole', 'axis': 'x', 'c': [0, 0, zH], 'radius': P, 'len': 10.0}]
     return {'ropes': [{'color': 'c', 'pts': pts}], 'code': None, 'objects': objs, 'relax': 'gaps',
             'marks': {'clove': (0, k_clove), 'wraps': (0, k_wraps), 'frap': (0, k_frap), 'end': (0, len(pts) - 1)}}
 
