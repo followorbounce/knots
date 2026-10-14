@@ -832,6 +832,54 @@ def blood_knot():
                       'b_coil': (1, i_coil), 'b_tuck': (1, len(B) - 1)}}
 
 
+def _blood_half(tuck_tail=True):
+    """Barrel knot joining two lines: each end twists round the other line five
+    times and comes back through the gap where the lines cross, the two ends going
+    through in opposite directions."""
+    oy = 0.19                     # the two lines run side by side at y = -oy (yellow) and +oy (blue)
+    rho = 2 * R + 0.04
+    turns, pitch = 5, 2 * R + 0.06
+    x0 = 0.42
+    x1 = x0 + turns * pitch
+    P = math.pi
+    # yellow: standing part from the left, across the centre, wraps round the blue line on the right
+    A = [[-4.2, -oy, 0], [-2.8, -oy, 0], [-1.2, -oy, 0], [-0.35, -oy, 0], [0.1, -oy + 0.05, 0.12],
+         [x0 - 0.12, oy - rho * 0.7, rho * 0.72]]
+    k0 = 4
+    m = 18 * turns
+    for k in range(m + 1):
+        t = k / m
+        a = 0.25 * P + 2 * P * turns * t                      # coil_x convention: a=0 front, pi/2 top
+        A.append([x0 + (x1 - x0) * t, oy + rho * math.sin(a), rho * math.cos(a)])
+    i_coil = len(A) - 1
+    # back over the top of the wraps to the centre, then down through the gap
+    top = oy + rho + 2 * R + 0.02
+    A += [[x1 + 0.22, oy + rho * 0.8, 0.12], [x1 - 0.05, top, 0.0], [(x0 + x1) / 2, top, 0.0], [x0 - 0.05, top, 0.0],
+          [-0.08, 0.45, 0.05], [-0.15, 0.12, 0.38], [-0.2, 0.0, 0.0], [-0.22, -0.12, -0.38], [-0.2, -0.6, -0.42],
+          [-0.12, -1.1, -0.36], [-0.05, -1.5, -0.3]]
+    A = _dedupe(A)
+    return A, k0, i_coil
+
+
+def blood_dropper_loop():
+    """A loop standing out from the middle of a line: the two sides are twisted round
+    each other and the loop is pushed through the gap in the middle of the twists."""
+    A, k0, i_coil = _blood_half()
+    # cut yellow just after it passes through the gap, then turn it down into the loop
+    cut = len(A) - 1
+    while cut > 0 and A[cut][2] < -0.2:
+        cut -= 1
+    a_main = A[:cut + 1]
+    B = [[-p[0], -p[1], p[2]] for p in a_main]          # the other side, turned half round
+    leg_a = [[-0.25, -0.15, -0.55], [-0.35, -0.6, -0.8], [-0.4, -1.5, -0.8]]
+    leg_b = [[0.25, 0.15, -0.55], [0.35, -0.3, -0.95], [0.4, -1.5, -0.95]]
+    u = [[-0.35, -2.3, -0.85], [0.0, -2.75, -0.88], [0.35, -2.3, -0.92]]
+    pts = _dedupe(a_main + leg_a + u + leg_b[::-1] + B[::-1])
+    return {'ropes': [{'color': 'c', 'pts': pts}], 'code': None, 'objects': [], 'relax': 'repel', 'wrapped': True,
+            'view': {'elev': 10}, 'marks': {'wraps': (0, i_coil), 'end': (0, len(pts) - 1)}}
+
+
+
 # ------------------------------------------------------------------ wave 3: lashings
 
 LP = 0.3                    # lashing pole radius
@@ -1708,3 +1756,528 @@ def seizing():
     return {'ropes': [{'color': 'c', 'pts': pts}], 'code': None, 'r': r, 'relax': 'repel', 'wrapped': True,
             'objects': objs, 'marks': {'start': (0, len(start) - 1), 'turns': (0, k_turns), 'frap': (0, k_frap),
                                        'end': (0, len(pts) - 1)}, 'view': {'elev': 8}}
+
+
+# ------------------------------------------------------------------ backlog
+
+def marlinspike_hitch():
+    """A loop laid over the line with a spike through it: over the loop, under the
+    line, over the loop. Holds while there is tension; falls out when the spike is drawn."""
+    zl = -0.12                                          # loop edges behind the spike
+    zm = 0.42                                           # the line in front of it
+    pts = [[0.0, 3.4, 0.0], [0.0, 2.2, 0.0], [0.0, 1.05, 0.05], [-0.08, 0.72, 0.12],
+           [-0.62, 0.45, zl], [-0.78, 0.0, zl], [-0.62, -0.48, zl], [0.0, -0.66, zl], [0.62, -0.48, zl], [0.78, 0.0, zl],
+           [0.62, 0.45, zl], [0.25, 0.68, 0.0], [0.05, 0.55, zm * 0.7], [0.0, 0.25, zm], [0.0, -0.3, zm],
+           [0.0, -0.75, zm * 0.5], [0.0, -1.3, 0.05], [0.0, -2.4, 0.0], [0.0, -3.4, 0.0]]
+    pts = [[p[0] * 1.45, p[1] * 1.3 if abs(p[1]) < 1.0 else p[1], p[2]] for p in pts]
+    spike = {'type': 'pole', 'axis': 'x', 'c': [0.35, 0.0, 0.14], 'radius': 0.09, 'len': 3.8, 'metal': True}
+    return {'ropes': [{'color': 'b', 'pts': pts}], 'code': None, 'objects': [spike], 'closure': [(0, 1)],
+            'marks': {'down': (0, 3), 'loop': (0, 12), 'end': (0, len(pts) - 1)}}
+
+
+def mirrored_rolling_hitch():
+    """The rolling hitch made the other way round, for a pull from the opposite side."""
+    g = rolling_hitch()
+    g['ropes'][0]['pts'] = [[-p[0], p[1], p[2]] for p in g['ropes'][0]['pts']]
+    for ob in g['objects']:
+        ob['c'] = [-ob['c'][0], ob['c'][1], ob['c'][2]]
+    g['ropes'][0]['color'] = 'b'
+    return g
+
+
+def pedigree_cow_hitch():
+    """A cow hitch with the loaded leg's partner tucked back up under the bight."""
+    g = cow_hitch()
+    pts = g['ropes'][0]['pts']
+    # pts are in the rotated frame (rail along x, legs hang down at x = +-yl). Replace the
+    # last leg's hanging part with a tuck: up under the bight and down in front.
+    k = len(pts) - 1
+    while k > 0 and pts[k][1] < -0.75:
+        k -= 1
+    leg_x = pts[-1][0]
+    tuck = [[leg_x, -1.15, 0.0], [leg_x * 0.4, -1.5, 0.12], [0.0, -1.2, 0.3], [-0.02, -0.75, 0.32],
+            [0.0, -0.3, 0.28], [0.05, -0.05, 0.62], [0.08, -0.5, 0.95], [0.1, -1.4, 0.95], [0.12, -2.4, 0.85]]
+    g['ropes'][0]['pts'] = _dedupe(pts[:k + 1] + tuck)
+    g['marks']['end'] = (0, len(g['ropes'][0]['pts']) - 1)
+    g['ropes'][0]['color'] = 'c'
+    return g
+
+
+def cow_hitch_toggle():
+    """Cow hitch through a ring, held by a toggle instead of the ends: pull the
+    toggle and it falls apart."""
+    ring = {'type': 'ring', 'c': [0.0, 1.35, 0.0], 'radius': 0.62, 'tube': 0.08}
+    yb = 1.35 - 0.62                                 # bottom bar of the ring
+    zt, yt = 0.95, 0.15                              # toggle in front, below the ring
+    toggle = {'type': 'pole', 'axis': 'x', 'c': [0.0, yt, zt], 'radius': 0.1, 'len': 2.4}
+    over = yb + 0.08 + R + 0.14
+    def leg(x, xb):
+        return [[x, -3.2, 0.22], [x, -1.0, 0.22], [x, yb - 0.35, 0.3], [x, over - 0.08, 0.2], [x, over, 0.0],
+                [x, over - 0.08, -0.22], [x * 1.3, yb - 0.3, -0.33], [xb, yb - 0.7, -0.32]]
+    L1 = leg(-0.17, -0.42)
+    L2 = leg(0.17, 0.42)[::-1]
+    # bight: from behind, forward outside the front legs, up in front, over the toggle, apex behind it
+    def side(xb, xf):
+        return [[xb, -0.2, -0.22], [xb * 1.1, -0.42, 0.1], [xf, -0.3, 0.55], [xf, yt - 0.25, zt + 0.25], [xf, yt + 0.12, zt + 0.22],
+                [xf, yt + 0.25, zt - 0.05], [xf * 0.8, yt + 0.05, zt - 0.27]]
+    s1 = side(-0.42, -0.3)
+    s2 = side(0.42, 0.3)[::-1]
+    apex = [[0.0, yt - 0.12, zt - 0.32]]
+    k = 1.7
+    pts = _dedupe([[p[0] * k, p[1] * k, p[2] * k] for p in L1 + s1 + apex + s2 + L2])
+    for ob in (ring, toggle):
+        ob['c'] = [c * k for c in ob['c']]
+    ring['radius'] *= k
+    toggle['len'] *= k
+    return {'ropes': [{'color': 'c', 'pts': pts}], 'code': None, 'objects': [ring, toggle], 'relax': 'repel', 'wrapped': True,
+            'marks': {'up': (0, len(L1) - 1), 'bight': (0, len(L1) + len(s1)), 'end': (0, len(pts) - 1)}}
+
+
+def bowline_with_stopper():
+    """A bowline whose tail is tied in an overhand knot round the leg of the eye beside it."""
+    import numpy as np
+    g = bowline()
+    P = _dense_with_z(g)[0]
+    cut = len(P) - 1
+    while cut > 0 and P[cut, 1] < -1.75:
+        cut -= 1
+    head = P[:cut:2].tolist()
+    yk = -2.55
+    # the right-hand leg of the eye, near height yk
+    seg = [p for p in P[: int(len(P) * 0.6)] if abs(p[1] - yk) < 0.25 and p[0] > 0.8]
+    lx = float(np.mean([p[0] for p in seg])) if seg else 1.7
+    rho = 2 * R + 0.06
+    knot = [[head[-1][0] + 0.15, -2.0, 0.05], [lx - rho - 0.05, yk + 0.25, 0.12]]
+    n = 22
+    for k in range(n + 1):
+        t = k / n
+        a = math.pi + 2 * math.pi * t
+        knot.append([lx + rho * math.cos(a), yk - 0.36 * t, rho * math.sin(a)])
+    knot += [[lx - rho * 0.6, yk - 0.5, -0.2], [lx - 0.05, yk - 0.22, -0.34], [lx + 0.34, yk + 0.02, -0.05],
+             [lx + 0.44, yk - 0.4, 0.15], [lx + 0.47, yk - 0.9, 0.15]]
+    pts = _dedupe(head + knot)
+    marks = dict(g['marks'])
+    marks['down'] = (0, len(head) - 1)
+    marks['stop'] = (0, len(pts) - 1)
+    for key in ('stand', 'loop', 'eye', 'up', 'round'):
+        i = g['marks'][key][1]
+        from knotlib import ctrl_arc_positions
+        cs = ctrl_arc_positions(g['ropes'][0]['pts'])
+        f = cs[i] / cs[-1]
+        marks[key] = (0, int(f * (len(P) - 1) / 2))
+    return {'ropes': [{'color': 'a', 'pts': pts}], 'code': None, 'objects': [], 'marks': marks}
+
+
+def _two_bights_twisted(code, twist_yellow=True, twist_blue=False, k=1.6, raw=False):
+    """Square-knot bights with an extra full twist in one or both pairs of legs
+    (the surgeon's knot family). Same orientation conventions as _two_bights."""
+    from knotlib import ctrl_arc_positions
+    red = [[-2.9, 0.19], [-2.55, 0.19], [-2.2, -0.19], [-1.85, 0.19], [-1.4, 0.19]] if twist_yellow else \
+          [[-2.9, 0.19], [-2.2, 0.19], [-1.4, 0.19]]
+    red += [[-0.85, 0.3], [-0.45, 0.72], [0.0, 0.86], [0.7, 0.86], [1.25, 0.66], [1.56, 0.0], [1.25, -0.66], [0.7, -0.86],
+            [0.0, -0.86], [-0.45, -0.72], [-0.85, -0.3], [-1.4, -0.19]]
+    red += ([[-1.85, -0.19], [-2.2, 0.19], [-2.55, -0.19], [-3.0, -0.19], [-4.6, -0.19]] if twist_yellow else
+            [[-2.6, -0.19], [-4.6, -0.19]])
+    blue = [[2.6, 0.5]] + ([[2.3, 0.5], [2.0, 0.5], [1.75, 0.5]] if False else [])
+    if twist_blue:
+        blue = [[3.3, 0.5], [2.95, 0.5], [2.6, -0.5], [2.25, 0.5], [1.9, 0.5]]
+    blue += [[0.6, 0.5], [-0.6, 0.5], [-1.4, 0.5], [-1.8, 0.31], [-1.92, 0.0], [-1.8, -0.31], [-1.4, -0.5], [-0.6, -0.5],
+             [0.6, -0.5]]
+    blue += ([[1.9, -0.5], [2.25, -0.5], [2.6, 0.5], [2.95, -0.5], [3.4, -0.5], [4.6, -0.5]] if twist_blue else
+             [[2.6, -0.5], [4.6, -0.5]])
+    red, blue = _scale(red, k, 2.5 * k), _scale(blue, k, 2.5 * k)
+    g0 = {'ropes': [{'color': 'a', 'pts': red}, {'color': 'b', 'pts': blue}], 'code': code}
+    return g0
+
+
+def _sheet_bend_3d(turns=1):
+    """Sheet bend built in 3D: the blue end comes up through the yellow bight, takes
+    `turns` turns round the bight's neck (behind both legs first), then tucks under
+    its own standing part."""
+    P = math.pi
+    ly = 0.38
+    red = [[-4.4, -ly, 0], [-2.8, -ly, 0], [-1.4, -ly, 0], [0.0, -ly, 0], [0.6, -ly, 0], [0.92, -0.27, 0], [1.03, 0.0, 0],
+           [0.92, 0.27, 0], [0.6, ly, 0], [0.0, ly, 0], [-1.4, ly, 0], [-2.6, ly, 0]]
+    rho = ly + R + R + 0.04
+    pitch = 2 * R + 0.06
+    xb = 0.22
+    blue = [[xb, -4.2, -0.05], [xb, -2.0, -0.08], [xb, -0.9, -0.15], [xb, -ly, -0.32], [xb, 0.0, 0.0], [xb - 0.02, ly, 0.32],
+            [xb - 0.12, ly + 0.28, 0.32]]
+    k_up = len(blue) - 1
+    a0, a1 = 0.5 * P, 2 * P * turns
+    x0 = -0.3
+    x1 = x0 - pitch * turns
+    blue += coil_x(0.0, 0.0, rho, a0, a1, x0, x1, n=30 * turns)
+    k_round = len(blue) - 1
+    # tuck: dive between the legs and under the blue standing part, ending inside the bight
+    blue += [[x1 + 0.3, 0.02, rho - 0.2], [-0.25, 0.0, -0.05], [xb, 0.02, -0.38], [0.5, 0.03, -0.25], [0.72, 0.03, -0.05]]
+    return {'ropes': [{'color': 'a', 'pts': red}, {'color': 'b', 'pts': _dedupe(blue)}], 'code': None, 'objects': [],
+            'closure': [(0, 1), (1, -1)],
+            'marks': {'red': (0, len(red) - 1), 'b_up': (1, k_up), 'b_round': (1, k_round), 'b_tuck': (1, len(_dedupe(blue)) - 1)}}
+
+
+def double_sheet_bend():
+    return _sheet_bend_3d(2)
+
+
+def _sheepshank_2d(k=1.0):
+    """Path of a sheepshank: left standing part, half hitch round the left bight,
+    bottom strand, right bight, middle strand, left bight, top strand, half hitch
+    (point-symmetric copy) round the right bight, right standing part."""
+    A = [[-5.6, -0.1], [-4.0, -0.1], [-3.0, -0.12], [-2.4, -0.25], [-1.7, -0.32], [-1.15, -0.05], [-1.05, 0.35],
+         [-1.25, 0.82], [-1.7, 1.0], [-2.15, 0.85], [-2.35, 0.35], [-2.25, -0.08], [-2.0, -0.45], [-1.5, -0.7]]
+    mid = [[0.0, -0.7], [1.6, -0.7], [2.55, -0.7], [2.95, -0.5], [3.05, -0.2], [2.85, 0.02], [2.4, 0.06], [1.0, 0.03],
+           [0.0, 0.0], [-1.0, -0.03], [-2.4, -0.06], [-2.85, -0.02], [-3.05, 0.2], [-2.95, 0.5], [-2.55, 0.7], [-1.6, 0.7], [0.0, 0.7]]
+    B = [[-p[0], -p[1]] for p in A][::-1]
+    pts = A + mid + B
+    return [[p[0] * k, p[1] * k] for p in pts], len(A)
+
+
+def sheepshank():
+    """Shortens a rope: a Z-fold held at each end by a half hitch made in the standing part."""
+    import numpy as np
+    from knotlib import catmull_rom, resample, find_crossings, z_profile, LIFT
+    K = 1.7
+    ctrl, nA = _sheepshank_2d(K)
+    P, _ = resample(catmull_rom(ctrl), 0.03)
+    cr = find_crossings([P])
+    n = len(P)
+    # which samples belong to each half-hitch loop (first and last 'nA' control points)
+    from knotlib import ctrl_arc_positions
+    cs = ctrl_arc_positions(ctrl)
+    tot = cs[-1]
+    a_end = int(cs[nA - 1] / tot * (n - 1))
+    b_start = int(cs[len(ctrl) - nA] / tot * (n - 1))
+    targets = []
+    for c in cr:
+        ia, ib = sorted([c['ia'], c['ib']])
+        x, y = c['xy']
+        in_a = ia <= a_end and ib <= a_end
+        in_b = ia >= b_start and ib >= b_start
+        if in_a or in_b:                          # the half hitch's own crossing: the end of the loop goes over
+            targets += [(ia, -LIFT), (ib, LIFT)]
+            continue
+        loop_i = ia if ia <= a_end else ib if ib >= b_start else None
+        strand_i = ib if loop_i == ia else ia
+        cx = -1.7 * K if x < 0 else 1.7 * K
+        outer = (x > cx) if x < 0 else (x < cx)    # loop over the strands on the side away from the bight tip
+        targets += [(loop_i, LIFT if outer else -LIFT), (strand_i, -LIFT if outer else LIFT)]
+    P[:, 2] = z_profile(n, targets)
+    pts = P[::2].tolist() + [P[-1].tolist()]
+    return {'ropes': [{'color': 'a', 'pts': pts}], 'code': None, 'objects': [], 'closure': [(0, 1)],
+            'fractions': {'zfold': 0.0}, 'marks': {'end': (0, len(pts) - 1)}, 'ncross': len(cr)}
+
+
+def _band_coil(cx, cz, rho, turns, y0, y1, a0, gap):
+    """Two parallel strands (a doubled sling) wound together round a vertical axis."""
+    s1, s2 = [], []
+    n = 36 * turns
+    for k in range(n + 1):
+        t = k / n
+        a = a0 + 2 * math.pi * turns * t
+        y = y0 + (y1 - y0) * t
+        p = [cx + rho * math.sin(a), y, cz + rho * math.cos(a)]
+        s1.append(p)
+        s2.append([p[0], y + gap, p[2]])
+    return s1, s2
+
+
+def klemheist():
+    """A loop of cord wound round the main rope, working up; the lower end is passed
+    through the upper bight and pulled down."""
+    rho = 2 * R + 0.03
+    gap = 2 * R + 0.04
+    turns = 4
+    pitch = 2 * gap + 0.04
+    y0 = -1.6
+    y1 = y0 + pitch * turns
+    s1, s2 = _band_coil(0, 0, rho, turns, y0, y1, 0.0, gap)
+    zf = rho + 2 * R + 0.06                           # legs, in front of the wraps
+    zu = zf + 2 * R + 0.06                            # the top bight, in front of the legs
+    top = s2[-1][1]
+    # top bight: from the top of the wraps forward and down in front, apex at mid height
+    ub = [[0.2, top + 0.05, zu * 0.7], [0.5, top - 0.3, zu], [0.5, (top + y0) / 2 + 0.05, zu],
+          [0.3, (top + y0) / 2 - 0.3, zu], [0.0, (top + y0) / 2 - 0.4, zu], [-0.3, (top + y0) / 2 - 0.3, zu], [-0.5, (top + y0) / 2 + 0.05, zu], [-0.5, top - 0.3, zu],
+          [-0.2, top + 0.05, zu * 0.7]]
+    # legs: from the bottom of the wraps, up in front of the wraps (behind the bight), over its apex, down
+    ya = (top + y0) / 2 - 0.15
+    def leg(s, x):
+        return [[x, y0 - 0.25, rho + 0.1], [x, y0, zf], [x, ya - 0.3, zf], [x, ya + 0.32, zf], [x * 1.2, ya + 0.45, zu + 0.25],
+                [x * 1.4, ya + 0.1, zu + 0.45], [x * 1.6, ya - 0.8, zu + 0.45], [x * 1.8, -4.0, zu + 0.3]]
+    L1 = leg(s1, 0.17)
+    L2 = leg(s2, -0.17)
+    # one closed loop: leg L1 up -> wrap strand 1 up -> bight -> wrap strand 2 down -> leg L2 -> far bottom
+    sling = L1[::-1][:-1] + [s1[0]]
+    sling = list(reversed(L1)) + s1[1:] + ub + list(reversed(s2))[1:] + L2[1:] + [[0.0, -4.25, zu + 0.3]]
+    sling = _dedupe(sling)
+    main = [[0, -4.2, 0], [0, -2.0, 0], [0, 0, 0], [0, 2.0, 0], [0, 3.2, 0]]
+    return {'ropes': [{'color': 'b', 'pts': main}, {'color': 'a', 'pts': sling, 'closed': True}], 'code': None, 'objects': [],
+            'relax': 'repel', 'wrapped': True,
+            'marks': {'main': (0, len(main) - 1), 'legs': (1, len(L1)), 'wraps': (1, len(L1) + len(s1) - 1),
+                      'bight': (1, len(L1) + len(s1) + len(ub)), 'all': (1, len(sling) - 1)}}
+
+
+def italian_hitch():
+    """Munter hitch on a bar: like a cow hitch, but the crossing part goes over one
+    leg and under the other, so both strands leave on the same side and the rope
+    can run round the bar under control."""
+    rho = POLE * 0.5 + R + 0.015
+    pr = POLE * 0.5
+    yl = 0.27
+    pitch = 2 * R + 0.06
+    up = coil_y(0, 0, rho, 0.5 * math.pi, 2.5 * math.pi, yl + 0.04, yl + 0.04 + pitch, n=30)
+    top = up[-1][1]
+    zb = 2 * R + 0.07
+    xb = rho + 0.35
+    bridge = [[rho + 0.15, top + 0.02, 0.15], [xb, top * 0.7, zb], [xb, yl, zb], [xb, 0.0, 0.0],
+              [xb, -yl, -zb], [xb, -top * 0.7, -zb], [rho + 0.15, -top - 0.02, -0.15]]
+    down = coil_y(0, 0, rho, 2.5 * math.pi, 0.5 * math.pi, -top, -(yl + 0.04), n=30)
+    legs_x = 3.4
+    leg1 = [[legs_x, yl, 0], [legs_x - 1.2, yl, 0], [rho + 0.7, yl, 0], [rho + 0.15, yl + 0.02, 0]]
+    leg2 = [[rho + 0.15, -yl - 0.02, 0], [rho + 0.7, -yl, 0], [legs_x - 1.2, -yl, 0], [legs_x, -yl, 0]]
+    pts = _dedupe(leg1 + up[1:] + bridge + down + leg2)
+    pts = [[p[1], -p[0], p[2]] for p in pts]
+    return {'ropes': [{'color': 'a', 'pts': pts}], 'code': None,
+            'objects': [{'type': 'pole', 'axis': 'x', 'c': [0, 0, 0], 'radius': pr, 'len': 2.6, 'metal': True}],
+            'marks': {'load': (0, len(leg1) - 1), 'over': (0, len(leg1) + len(up) - 2),
+                      'cross': (0, len(leg1) + len(up) + len(bridge) - 2), 'end': (0, len(pts) - 1)}}
+
+
+def bachmann_knot():
+    """NOT PUBLISHED: the wraps still pass through the carabiner spine and tangle
+    after relaxation. A loop of cord clipped into a carabiner and wound round the rope and the
+    carabiner's spine together. Hold the carabiner to slide it; load the cord to grip."""
+    rc = 0.2
+    xs = 0.48                                         # carabiner spine beside the main rope
+    sp = 0.07
+    cx = xs / 2
+    rho = R + R + 0.04                                # racetrack round rope and spine
+    gap = 2 * R + 0.04
+    turns = 3
+    pitch = 2 * gap + 0.05
+    y1 = 0.9
+    y0 = y1 - pitch * turns
+    s1 = _racetrack(xs / 2, rho, y1, turns, -pitch, u0=0.0, m_per=40)
+    s1 = [[p[0] + cx, p[1], p[2]] for p in s1]
+    s2 = [[p[0], p[1] + gap, p[2]] for p in s1]
+    ytop = s2[0][1]
+    # the top bight goes round the far side of the carabiner (clipped in)
+    fx = xs + 1.2
+    clip = [[cx + 0.25, ytop + 0.12, rho * 0.6], [1.0, ytop + 0.12, 0.3], [fx - 0.05, ytop + 0.08, 0.26], [fx + 0.27, ytop + 0.02, 0.0],
+            [fx - 0.05, ytop - 0.04, -0.26], [1.0, ytop - 0.08, -0.3], [cx + 0.25, ytop - 0.1, -rho * 0.6]]
+    legs = 3.6
+    def leg(s, dz):
+        p = s[-1]
+        return [[p[0] + 0.1, p[1] - 0.25, p[2] * 0.5 + dz + 0.25], [0.5, p[1] - 1.0, 0.5 + dz], [1.1, -legs - 0.6, 0.5 + dz]]
+    L1 = leg(s1, 0.17)
+    L2 = leg(s2, -0.17)
+    sling = _dedupe(list(reversed(s1)) + clip + s2 + L2 + [[1.15, -legs - 0.25, 0.3]] + list(reversed(L1)))
+    main = [[0, -4.0, 0], [0, -2.0, 0], [0, 0, 0], [0, 2.0, 0], [0, 3.0, 0]]
+    main = [[p[0] - 0.0, p[1], p[2]] for p in main]
+    yt, yb = ytop + 0.7, y0 - 0.75
+    objs = [{'type': 'pole', 'axis': 'y', 'c': [xs, (yt + yb) / 2, 0], 'radius': sp, 'len': yt - yb, 'metal': True},
+            {'type': 'pole', 'axis': 'y', 'c': [xs + 1.2, (yt + yb) / 2, 0], 'radius': sp, 'len': yt - yb, 'metal': True},
+            {'type': 'arc', 'c': [xs + 0.6, yt, 0], 'radius': 0.6, 'tube': sp, 'a0': 0.0, 'a1': math.pi},
+            {'type': 'arc', 'c': [xs + 0.6, yb, 0], 'radius': 0.6, 'tube': sp, 'a0': math.pi, 'a1': 2 * math.pi}]
+    return {'ropes': [{'color': 'b', 'pts': [[p[0] - rc * 0, p[1], p[2]] for p in main]}, {'color': 'a', 'pts': sling, 'closed': True}],
+            'code': None, 'objects': objs, 'relax': 'repel', 'wrapped': True,
+            'marks': {'main': (0, len(main) - 1), 'all': (1, len(sling) - 1)}}
+
+
+def _tube_weave(n_each, pattern, rc, pitch, y0, y1, r_ann=8.0, lift=0.17):
+    """Tubular braid: n_each strands spiral one way and n_each the other way round a
+    cylinder of radius rc, woven `pattern` over / `pattern` under (1 = plain, 2 = twill).
+    Built on the annulus picture of the cylinder, then rolled up."""
+    import numpy as np
+    from knotlib import find_crossings, z_profile
+    ys = np.arange(y0, y1 + 1e-9, 0.03)
+    parts = []
+    for fam, sgn in ((0, 1), (1, -1)):
+        for i in range(n_each):
+            th = 2 * math.pi * (i + 0.5 * fam) / n_each + sgn * 2 * math.pi * (ys - y0) / pitch
+            parts.append({'theta': th, 'y': ys, 'fam': fam})
+    ann = [np.column_stack([(r_ann + p['y']) * np.cos(p['theta']), (r_ann + p['y']) * np.sin(p['theta']), np.zeros(len(ys))])
+           for p in parts]
+    cr = find_crossings(ann)
+    passes = {k: [] for k in range(len(parts))}
+    for ci, c in enumerate(cr):
+        a = c['ra'] if parts[c['ra']]['fam'] == 0 else c['rb']
+        fa = c['ia'] if a == c['ra'] else c['ib']
+        passes[a].append((fa, ci))
+    tg = [[] for _ in parts]
+    for k, lst in passes.items():
+        lst.sort()
+        off = k % 2 if pattern == 1 else k % 4 // 1
+        for n_, (f, ci) in enumerate(lst):
+            c = cr[ci]
+            over = ((n_ + off) // pattern) % 2 == 0
+            b = c['rb'] if c['ra'] == k else c['ra']
+            fb = c['ib'] if c['ra'] == k else c['ia']
+            tg[k].append((f, lift if over else -lift))
+            tg[b].append((fb, -lift if over else lift))
+    out = []
+    for k, p in enumerate(parts):
+        off = z_profile(len(ys), tg[k], plateau=0.9 * R / 0.03, ramp=2.2 * R / 0.03)
+        rho = rc + off
+        out.append(np.column_stack([rho * np.sin(p['theta']), ys, rho * np.cos(p['theta'])]))
+    return out, len(cr)
+
+
+def _sennit(n_each, pattern, rc, pitch, colors):
+    P3, ncross = _tube_weave(n_each, pattern, rc, pitch, -2.6, 2.6)
+    ropes = []
+    for k, P in enumerate(P3):
+        top, bot = P[-1], P[0]
+        dy = 0.6 if k >= len(P3) // 2 else 0.0
+        ends = [[top[0] * 2.0, top[1] + 0.55 + dy, top[2] * 2.0], [top[0] * 3.2, top[1] + 1.3 + dy, top[2] * 3.2]]
+        starts = [[bot[0] * 3.2, bot[1] - 1.3, bot[2] * 3.2], [bot[0] * 2.0, bot[1] - 0.55, bot[2] * 2.0]]
+        ropes.append({'color': colors[k % len(colors)], 'pts': starts + P[::3].tolist() + ends})
+    fl = {'a': [0.33] * len(ropes), 'b': [0.66] * len(ropes)}
+    return {'ropes': ropes, 'code': None, 'objects': [], 'relax': 'repel', 'wrapped': True, 'ncross': ncross,
+            'fraction_lists': fl, 'marks': {'end': (0, len(ropes[0]['pts']) - 1)}, 'view': {'elev': 12}}
+
+
+def round_sennit_4():
+    return _sennit(2, 1, 0.3, 2.2, ['a', 'b', 'c', 'a'])
+
+
+def square_sennit_8():
+    return _sennit(4, 2, 0.52, 3.0, ['a', 'b', 'c', 'b'])
+
+
+def _surgeon_layout(tw_bottom=0, tw_top=0):
+    """Square-knot bights with an extra full twist between the two standing parts
+    (surgeon's first half) and, for the second tuck, between the two working ends."""
+    red=[[-2.9,0.19],[-2.2,0.19],[-1.4,0.19],[-0.85,0.3],[-0.45,0.72],[0.0,0.86],[0.7,0.86],[1.25,0.66],[1.56,0.0],[1.25,-0.66],[0.7,-0.86],[0.0,-0.86],[-0.45,-0.72],[-0.85,-0.3],[-1.4,-0.19],[-2.6,-0.19],[-4.6,-0.19]]
+    blue=[[2.6,0.5],[0.6,0.5],[-0.6,0.5],[-1.4,0.5],[-1.8,0.31],[-1.92,0.0],[-1.8,-0.31],[-1.4,-0.5],[-0.6,-0.5],[0.6,-0.5],[2.6,-0.5],[4.6,-0.5]]
+    if tw_bottom:
+        red=red[:10]+[[0.9,-0.86],[0.6,-0.5],[0.3,-0.86],[0.0,-0.5],[-0.3,-0.86]]+red[12:]
+        blue=blue[:8]+[[-0.3,-0.5],[0.0,-0.86],[0.3,-0.5],[0.6,-0.86],[0.9,-0.5]]+blue[10:]
+    if tw_top:
+        red=red[:5]+[[-0.3,0.86],[0.0,0.5],[0.3,0.86],[0.6,0.5],[0.9,0.86]]+red[7:]
+        blue=blue[:1]+[[0.9,0.5],[0.6,0.86],[0.3,0.5],[0.0,0.86],[-0.3,0.5]]+blue[3:]
+    red=_scale(red,1.7,99); blue=_scale(blue,1.7,99)
+    return red,blue
+
+
+def _surgeon(code, tw_top=0):
+    red, blue = _surgeon_layout(1, tw_top)
+    g0 = {'ropes': [{'color': 'a', 'pts': red}, {'color': 'b', 'pts': blue}], 'code': code}
+    Ps = [P[::-1].copy() for P in _dense_with_z(g0)]
+    return {'ropes': [{'color': 'a', 'pts': Ps[0][::2].tolist() + [Ps[0][-1].tolist()]},
+                      {'color': 'b', 'pts': Ps[1][::2].tolist() + [Ps[1][-1].tolist()]}],
+            'code': None, 'objects': [], 'closure': [(0, 1), (1, -1)],
+            'rope_fractions': {'in': (1, 0.42), 'bend': (1, 0.6)}, 'marks': {'red': (0, len(Ps[0][::2])), 'blue': (1, len(Ps[1][::2]))}}
+
+
+SURGEON_CODE = 'uouuuuouou'
+
+
+def surgeons_knot():
+    return _surgeon(SURGEON_CODE)
+
+
+def surgeons_knot_second_tuck():
+    return _surgeon('uouooouuuuouou', tw_top=1)
+
+
+def highwaymans_hitch():
+    """Draw hitch on a rail: a bight of the working part over the rail; a bight of the
+    standing part up through it; a bight of the end through that. Load the standing
+    part; pull the end and the whole thing falls off the rail."""
+    pr = 0.25
+    zr = pr + R + 0.04                      # just clear of the rail
+    x2, x1, x3 = 0.4, 0.75, 0.15            # half-widths: standing bight, working bight, end bight
+    z2, z1, z3 = zr + 0.2, zr + 0.55, zr + 0.9
+    top = pr + R + 0.05
+    pts = [[-x2, -4.0, z2], [-x2, -2.0, z2], [-x2, -0.7, z2],
+           # second bight (standing part) up through the first, apex above the rail in front
+           [-x2, top + 0.2, z2 - 0.05], [-x2 * 0.6, top + 0.62, z2 - 0.15], [0.0, top + 0.72, z2 - 0.18],
+           [x2 * 0.6, top + 0.62, z2 - 0.15], [x2, top + 0.2, z2 - 0.05], [x2, -0.7, z2], [x2, -1.25, z2 - 0.05],
+           # round underneath and up behind the rail: the first bight (working part)
+           [x1 * 0.8, -1.6, 0.05], [x1, -1.3, -zr], [x1, -0.25, -zr], [x1, 0.3, -zr * 0.78], [x1, top + 0.05, 0.0],
+           [x1, 0.15, z1 * 0.7], [x1, -0.55, z1], [x1 * 0.6, -0.95, z1], [0.0, -1.05, z1], [-x1 * 0.6, -0.95, z1],
+           [-x1, -0.55, z1], [-x1, 0.15, z1 * 0.7], [-x1, top + 0.05, 0.0], [-x1, 0.3, -zr * 0.78], [-x1, -0.25, -zr],
+           [-x1, -1.3, -zr], [-x1 * 1.05, -1.75, 0.3], [-0.6, -1.95, 1.05],
+           # the end: a bight up in front and through the second bight, apex behind it
+           [-x3, -1.6, z3], [-x3, -0.4, z3], [-x3, top + 0.3, z3 * 0.7], [-x3, top + 0.5, 0.15], [0.0, top + 0.45, -0.08],
+           [x3, top + 0.5, 0.15], [x3, top + 0.3, z3 * 0.7], [x3, -0.4, z3], [x3, -1.2, z3], [x3 + 0.05, -1.8, z3]]
+    pts = _dedupe(pts)
+    return {'ropes': [{'color': 'b', 'pts': pts}], 'code': None, 'closure': [(0, 1)],
+            'objects': [{'type': 'pole', 'axis': 'x', 'c': [0, 0, 0], 'radius': pr, 'len': 3.4}],
+            'marks': {'first': (0, 26), 'second': (0, 9), 'end': (0, len(pts) - 1)}, 'view': {'elev': 10}}
+
+
+def palomar_knot():
+    """A bight of line through the eye of the hook, an overhand knot tied with the
+    doubled line, and the loop of the bight passed over the hook so it lassos the shank."""
+    import numpy as np
+    base = [[-3.6, 0.0], [-2.2, 0.0], [-1.0, 0.0], [0.0, 0.02], [0.55, 0.27], [0.82, 0.75], [0.58, 1.22], [0.0, 1.32],
+            [-0.5, 1.02], [-0.56, 0.42], [-0.4, -0.3], [-0.05, -0.62], [0.32, -0.45], [0.36, 0.12], [0.4, 0.55],
+            [0.95, 0.8], [1.6, 0.78]]
+    base = _rot(_scale(base, 1.2, 1.8), 'cw')
+    A, _, B = _doubled(base, 'uou', z_gain=1.3)
+    # move so the bottom of the doubled line sits just above the eye
+    er = 0.46
+    ey = 0.5
+    end = (A[-1, :2] + B[-1, :2]) / 2
+    shift = np.array([-end[0], ey + er + 0.75 - end[1]])
+    A[:, :2] += shift
+    B[:, :2] += shift
+    a0, b0 = A[-1], B[-1]
+    xa, xb = a0[0], b0[0]
+    rr = SHANK_R + R + 0.04
+    yl = -0.5
+    def down(p, x):
+        return [[x, p[1] - 0.3, 0.32], [x * 0.9, ey + 0.1, 0.36], [x * 0.8, ey, 0.0], [x * 0.9, ey - 0.12, -0.36],
+                [x, yl + 0.3, -0.32]]
+    da, db = down(a0, xa), down(b0, xb)
+    sa = 1 if xa > xb else -1
+    lasso = [[sa * rr, yl, -0.12], [sa * rr * 1.1, yl - 0.05, 0.12], [0.0, yl - 0.1, rr + 0.04], [-sa * rr * 1.1, yl - 0.05, 0.12],
+             [-sa * rr, yl, -0.12]]
+    pts = A[::3].tolist() + da + lasso + db[::-1] + B[::-3].tolist()
+    pts = _dedupe(pts)
+    n = len(pts)
+    hook = _hook()
+    hook[0] = {'type': 'ring', 'c': [0.0, ey, 0], 'radius': er, 'tube': EYE_T}
+    na = len(A[::3])
+    return {'ropes': [{'color': 'a', 'pts': pts}], 'code': None, 'objects': hook, 'relax': 'repel', 'wrapped': True,
+            'fraction_lists': {'knot': [0.32], 'eye': [na / n], 'lasso': [(na + len(da) + len(lasso)) / n]},
+            'marks': {'end': (0, n - 1)}}
+
+
+def bimini_twist(twists=8):
+    """Long double-line loop: the loop is twisted many times, the end wound back down over
+    the twists, then locked with a half hitch round one leg."""
+    rt = R + 0.05
+    top = 3.2
+    pitch_t = 0.68
+    y0 = top - pitch_t * twists
+    s1, s2 = [], []
+    n = 30 * twists
+    for k in range(n + 1):
+        t = k / n
+        a = 2 * math.pi * twists * t
+        y = top - (top - y0) * t
+        s1.append([rt * math.cos(a), y, rt * math.sin(a)])
+        s2.append([-rt * math.cos(a), y, -rt * math.sin(a)])
+    # standing line in from above as strand 1; the loop below joins strand 1 to strand 2
+    stand = [[s1[0][0], top + 2.2, 0.0], [s1[0][0], top + 1.0, 0.0]]
+    loop = [[s1[-1][0] * 1.5, y0 - 0.5, 0.0], [0.9, y0 - 2.0, 0.0], [0.0, y0 - 3.2, 0.0], [-0.9, y0 - 2.0, 0.0],
+            [s2[-1][0] * 1.5, y0 - 0.5, 0.0]]
+    # end: strand 2 continues at the top and winds back down over the twists
+    ro = 2 * rt + 2 * R + 0.06
+    n_c = int((top - y0 - 0.4) / (2 * R + 0.14))
+    coil = [[s2[0][0] * 1.3, top + 0.5, 0.1], [ro * 0.6, top + 0.45, ro * 0.6]]
+    m = 24 * n_c
+    for k in range(m + 1):
+        t = k / m
+        a = 0.5 * math.pi + 2 * math.pi * n_c * t
+        coil.append([ro * math.sin(a), top - 0.05 - (top - y0 - 0.45) * t, ro * math.cos(a)])
+    lx, ly = 0.47, y0 - 1.0
+    lock = [[0.65, y0 - 0.25, 0.5], [lx, ly + 0.25, 0.48], [lx + 0.48, ly + 0.05, 0.0], [lx, ly - 0.1, -0.46],
+            [lx - 0.44, ly - 0.2, 0.0], [lx - 0.05, ly - 0.35, 0.48], [lx + 0.55, ly - 0.6, 0.5], [1.6, ly - 1.3, 0.45]]
+    pts = _dedupe(stand + s1 + loop + s2[::-1] + coil + lock)
+    k1 = len(stand) + len(s1) + len(loop) + len(s2)
+    return {'ropes': [{'color': 'b', 'pts': pts}], 'code': None, 'objects': [], 'relax': False, 'wrapped': True,
+            'marks': {'twist': (0, k1 - 1), 'coil': (0, k1 + len(coil) - 1), 'end': (0, len(pts) - 1)}, 'view': {'elev': 6}}

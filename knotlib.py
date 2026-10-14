@@ -752,6 +752,8 @@ KNOWN = {
 KNOWN['8_18'] = {-16: 1, -12: -4, -8: 6, -4: -7, 0: 9, 4: -7, 8: 6, 12: -4, 16: 1}
 KNOWN['square'] = jones_mul(KNOWN['3_1'], jones_mirror(KNOWN['3_1']))
 KNOWN['granny'] = jones_mul(KNOWN['3_1'], KNOWN['3_1'])
+KNOWN['surgeon'] = jones_mul(KNOWN['5_1'], jones_mirror(KNOWN['3_1']))
+KNOWN['surgeon2'] = jones_mul(KNOWN['5_1'], jones_mirror(KNOWN['5_1']))
 
 
 def knot_type_ok(V, name):

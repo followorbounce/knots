@@ -62,6 +62,23 @@ Interactive 3D guide to tying knots.
 - [Short Splice](https://followorbounce.github.io/knots/knots/short-splice/): Joins two three-strand ropes end to end: the ends are married so their strands interlock, then each rope’s strands are tucked into the other rope against the lay
 - [Common Whipping](https://followorbounce.github.io/knots/knots/common-whipping/): Turns of thin twine bound round a rope end to stop it unravelling
 - [Flat Seizing](https://followorbounce.github.io/knots/knots/seizing/): Binds two parts of rope side by side with twine: tight turns round both, then frapping turns between them to draw the turns tight
+- [Marlinspike Hitch](https://followorbounce.github.io/knots/knots/marlinspike-hitch/): A loop laid over the line with a spike or rod pushed through it: over the loop, under the line, over the loop
+- [Mirrored Rolling Hitch](https://followorbounce.github.io/knots/knots/mirrored-rolling-hitch/): The rolling hitch tied as its mirror image, for a pull coming from the opposite side
+- [Pedigree Cow Hitch](https://followorbounce.github.io/knots/knots/pedigree-cow-hitch/): A cow hitch made secure for a pull on one leg only: the free end is tucked back up under the bight, so it cannot slide out.
+- [Cow Hitch with Toggle](https://followorbounce.github.io/knots/knots/cow-hitch-toggle/): A cow hitch through a ring where a wooden toggle takes the place of the ends: the bight is caught round the toggle
+- [Bowline with Stopper](https://followorbounce.github.io/knots/knots/bowline-with-stopper/): A bowline with its tail tied in an overhand knot round the leg of the eye beside it, so the bowline cannot shake loose when it is not loaded.
+- [Double Sheet Bend](https://followorbounce.github.io/knots/knots/double-sheet-bend/): A sheet bend with a second turn of the thinner rope round the bight
+- [Sheepshank](https://followorbounce.github.io/knots/knots/sheepshank/): Shortens a rope without cutting it: the rope is folded into a Z and each end of the fold is held by a half hitch made in the standing part
+- [Klemheist Knot](https://followorbounce.github.io/knots/knots/klemheist/): A friction hitch tied with a loop of cord or tape
+- [Italian Hitch](https://followorbounce.github.io/knots/knots/italian-hitch/): A hitch on a carabiner or bar that lets rope run under control
+- [Blood Dropper Loop](https://followorbounce.github.io/knots/knots/blood-dropper-loop/): A loop standing out from the middle of a line, at right angles to it
+- [Four-Strand Round Sennit](https://followorbounce.github.io/knots/knots/round-sennit-4/): Four strands braided into a firm round cord
+- [Eight-Strand Square Sennit](https://followorbounce.github.io/knots/knots/square-sennit-8/): Eight strands braided into a thick cord with a square section, each strand passing over two and under two
+- [Surgeon’s Knot](https://followorbounce.github.io/knots/knots/surgeons-knot/): A square knot with an extra twist in the first half
+- [Surgeon’s Knot with Second Tuck](https://followorbounce.github.io/knots/knots/surgeons-knot-second-tuck/): The surgeon’s knot with the extra twist in both halves
+- [Highwayman’s Hitch](https://followorbounce.github.io/knots/knots/highwaymans-hitch/): A quick-release hitch on a rail made only of bights: one bight round the rail, a second through it, and a third through the second
+- [Palomar Knot](https://followorbounce.github.io/knots/knots/palomar-knot/): A strong knot for tying line to a hook: a bight goes through the eye, an overhand knot is tied with the doubled line, and the bight is passed over the hook so the knot closes round the shank.
+- [Bimini Twist](https://followorbounce.github.io/knots/knots/bimini-twist/): A long, strong doubled loop for fishing line
 
 ## Basics
 

@@ -67,30 +67,34 @@
   (engine/knot-of-day.* there). Keep the feed format stable: slug, name, chapter,
   brief, difficulty, acts, r, ropes [{c, p}], objects, steps [{t, v}].
 
-## Still to do from wave 5
-French, Sailmaker's and Palm-and-Needle whippings; Tapering a Splice; Stitch and Seize.
+## 2026-10-13: Backlog pass (17 more, 75 total)
+Shipped, each passing clearance; knot type checked by Jones where it closes:
+Marlinspike Hitch (unknot), Mirrored Rolling Hitch, Pedigree Cow Hitch, Cow Hitch
+with Toggle, Bowline with Stopper, Double Sheet Bend (3D sheet bend, 2 turns),
+Sheepshank (unknot), Klemheist, Italian Hitch, Blood Dropper Loop, Four-Strand
+Round Sennit, Eight-Strand Square Sennit (`_tube_weave`), Surgeon's Knot
+(KNOWN 'surgeon' = 5_1 # mirror 3_1, code 'uouuuuouou'), Surgeon's Knot with
+Second Tuck ('surgeon2' = 5_1 # mirror 5_1, code 'uouooouuuuouou', tw_top=1),
+Highwayman's Hitch (unknot), Palomar Knot (doubled overhand above a hook eye,
+bight round the shank), Bimini Twist (relax False; 8 twists, coil back, half hitch).
+Codes for the surgeon's knots came from an exhaustive search over the twisted
+square-knot layout (`_surgeon_layout`), keeping codes that close to the right type.
 
-## Still to do from wave 4
-Matthew Walker, Manrope and Diamond knots; Ocean-Braid and Oval mats; Chain
-Sennit; Four-Strand Round, Eight-Strand Square, Round Crown, Six-Strand Round
-Crowning and Square Crown sennits.
-
-## Still to do from wave 3
-Carrick Bend (build from the 3-lead 4-bight Turk's head generator in wave 4),
-Hunter's Bend, Ashley's Bend, Double and Tucked Sheet Bends, Rope Yarn Knot,
-Lanyard Knot, Diagonal Lashing, Palomar Knot (first model was ambiguous at its
-crossings and was dropped), Snelling a Hook, Blood Dropper Loop, Bimini Twist,
-nets.
-
-## Still to do from the stopper/binding/hitch/loop chapters
-Sink stopper, true lover's knot, sailor's cross, surgeon's knot (and with second
-tuck), turquoise turtle, packer's knot, boa knot, pedigree cow hitch, cow hitch
-with toggle, sheepshank, sheepshank man o' war, marlinspike hitch, highwayman's
-hitch, waggoner's hitch, icicle hitch, Bachmann, Klemheist, Italian hitch (and
-reversed), mirrored rolling hitch, alpine butterfly, bowline with stopper,
-bowline on the bight, Portuguese bowline, Spanish bowline, angler's loop,
-single figure-eight loop on the bight. Most need either a new 3D construction
-(carabiner, toggle, hook) or a careful flat drawing checked against the reference.
+## Held back (not verified; do not publish without a checked model)
+- Hunter's Bend: first model closed to unknots per rope, not trefoils. Removed.
+- Bachmann Knot: model exists (`bachmann_knot`, marked NOT PUBLISHED); wraps run
+  through the carabiner spine and tangle after relaxation.
+- Structure not yet modelled with confidence: Tucked Sheet Bend, Ashley's Bend,
+  Rope Yarn Knot, Lanyard Knot, Spanish / Portuguese bowline, bowline on the bight,
+  single figure-eight loop on the bight, alpine butterfly, angler's loop, true
+  lover's knot, sailor's cross, turquoise turtle, boa, sink stopper, packer's knot,
+  sheepshank man o' war, waggoner's hitch, icicle hitch, reversed Italian hitch
+  (mentioned in the Italian hitch text), Snelling a Hook.
+- Decorative/many-strand: Matthew Walker, Manrope and Diamond knots; Ocean-Braid
+  and Oval mats; Chain Sennit; Round Crown, Six-Strand Round Crowning and Square
+  Crown sennits; nets; Diagonal Lashing; jury mast knot.
+- Whipping/splice work: French, Sailmaker's and Palm-and-Needle whippings;
+  Tapering a Splice; Stitch and Seize.
 
 ## Known limits
 - Final "tighten" steps show the loose, dressed model; there is no tightened shape yet.
@@ -99,10 +103,8 @@ single figure-eight loop on the bight. Most need either a new 3D construction
 - No in-browser authoring tool yet; models are authored in Python and checked with
   `tools/preview.py`.
 
-## Next (Wave 2)
-Rest of stoppers, binding knots, hitches and loops (~60), then bends/lashings/
-fishing knots (wave 3), generated Turk's heads/braids/sennits (wave 4),
-splices and whippings as strand diagrams (wave 5).
+## Next
+Work through "Held back" above, one verified model at a time.
 
 ## Snippets
 Tag dump per step (check captions):
