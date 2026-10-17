@@ -384,11 +384,11 @@ W2 = [
         'untie_how': 'Push the turns apart one at a time from the end that was tucked, and work the end back out.',
         'related': [('double-overhand-knot', 'The same idea with two turns.'), ('stevedore-knot', 'A large stopper that unties more easily.')],
         'steps': [
-            ('stand', 'Run the working end along beside the standing part.', {'notags': True}),
-            ('turn', 'Turn the end back on itself.', {'notags': True}),
-            ('coil', 'Wrap it four times round the standing part, working back along it, keeping the turns snug and in order.', {'notags': True}),
-            ('end', 'Tuck the end back through the inside of all the wraps.', {'notags': True}),
-            ('end', 'Hold the turns and pull both ends a little at a time until they close into a smooth barrel.', {'tighten': True, 'notags': True}),
+            ('loop', 'Make a loop by taking the working end round and under the standing part.', {'notags': True}),
+            ('tuck', 'Bring the end up behind the loop to its right-hand side.', {'notags': True}),
+            ('coil', 'Wrap the end four times round that side of the loop. Every wrap goes through the loop; keep the turns side by side.', {'notags': True}),
+            ('end', 'Lead the end out from the last wrap.', {'notags': True}),
+            ('end', 'Hold the wraps and pull both ends a little at a time. The loop closes up and the wraps roll into a smooth barrel.', {'tighten': True, 'notags': True}),
         ],
     },
     {

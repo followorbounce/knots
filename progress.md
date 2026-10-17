@@ -159,3 +159,6 @@ pulled through): from each leg upward the rope goes under the rail to the front,
 front, over the top and down the back to the bight; the bight sits just under the rail at
 the back, outside both legs. Seen from the front: two loops over the rail and the legs
 between them, as in the owner's reference picture. Pedigree Cow Hitch rebuilt on it.
+
+## 2026-10-16 — Multiple overhand redrawn
+- Owner: in step 5 the line must go through the initial loop; the old barrel drawing (`_coil_knot(4)`: tail run back inside the coils, out beside the U-turn) closed to 9_1 but did not read as a knot. New `_loop_wrap(n)` in geometry.py draws it as tied: a loop closed under the standing part, the end brought up behind the loop and wrapped n times round its right side, every wrap through the loop. Jones-checked for n=1..4 (3_1, 5_1, 7_1, 9_1); the first draft had the loop crossing over the standing part and came out one twist short (n=4 gave 7_1), fixed by taking the end under. Steps rewritten to match (loop / tuck / coil / end). Full build: all knots ok, no warnings. Double overhand still uses the barrel drawing.

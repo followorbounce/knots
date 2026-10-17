@@ -447,8 +447,42 @@ def double_overhand():
     return _single(pts, m, 'b')
 
 
+def _loop_wrap(n, sx=1.5, y0=0.95, y1=None, w=None):
+    """Multiple overhand as tied: a loop, the end wrapped n times round the loop's
+    right side, every wrap passing through the loop."""
+    w = w or (R * 2 + 0.06)                      # helix radius round the strand
+    pitch = 2 * R + 0.08
+    y1 = y1 or (y0 + pitch * n)
+    top = max(3.0, y1 + 0.7)
+    pts = [[-4.5, 0, 0], [-2.6, 0, 0], [-1.2, 0, 0], [0, 0, 0]]
+    k_stand = 2
+    pts += [[0.85, 0.12, 0], [1.35, 0.5, 0], [sx, y0 - 0.15, 0]]
+    pts += [[sx, y1 + 0.2, 0], [sx - 0.15, top - 0.35, 0], [0.75, top, 0], [-0.1, top - 0.1, 0],
+            [-0.75, top - 0.6, 0], [-1.0, (top) / 2, 0], [-0.9, 0.75, 0], [-0.65, 0.3, -0.12],
+            [-0.42, 0.0, -0.34], [-0.2, -0.38, -0.3]]
+    k_loop = len(pts) - 1
+    # behind the loop and up to the back of the right side
+    pts += [[0.35, -0.5, -0.25], [0.95, -0.05, -0.38], [sx - 0.2, y0 - 0.45, -w * 0.9]]
+    k_tuck = len(pts) - 1
+    m = 16 * n
+    for k in range(m + 1):
+        t = k / m
+        a = -math.pi / 2 + 2 * math.pi * n * t
+        pts.append([sx + w * math.cos(a), y0 + (y1 - y0) * t, w * math.sin(a)])
+    k_coil = len(pts) - 1
+    for k in range(1, 5):
+        a = -math.pi / 2 + 2 * math.pi * n + (math.pi / 2) * k / 4
+        pts.append([sx + w * math.cos(a), y1 + 0.05 * k, w * math.sin(a)])
+    pts += [[sx + 0.9, y1 + 0.35, 0], [sx + 2.0, y1 + 0.45, 0], [sx + 3.0, y1 + 0.5, 0]]
+    pts = _dedupe(pts)
+    return pts, {'stand': (0, k_stand), 'loop': (0, k_loop), 'tuck': (0, k_tuck), 'coil': (0, k_coil), 'end': (0, len(pts) - 1)}
+
+
 def multiple_overhand():
-    pts, m = _coil_knot(4)
+    # Drawn as it is tied (2026-10-16, owner): a loop with the end wrapped four times
+    # round its right side, every wrap passing through the loop. The earlier barrel
+    # drawing (_coil_knot) closed to the right knot type but did not read as a knot.
+    pts, m = _loop_wrap(4)
     return _single(pts, m, 'b')
 
 
