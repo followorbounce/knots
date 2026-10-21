@@ -162,3 +162,29 @@ between them, as in the owner's reference picture. Pedigree Cow Hitch rebuilt on
 
 ## 2026-10-16 — Multiple overhand redrawn
 - Owner: in step 5 the line must go through the initial loop; the old barrel drawing (`_coil_knot(4)`: tail run back inside the coils, out beside the U-turn) closed to 9_1 but did not read as a knot. New `_loop_wrap(n)` in geometry.py draws it as tied: a loop closed under the standing part, the end brought up behind the loop and wrapped n times round its right side, every wrap through the loop. Jones-checked for n=1..4 (3_1, 5_1, 7_1, 9_1); the first draft had the loop crossing over the standing part and came out one twist short (n=4 gave 7_1), fixed by taking the end under. Steps rewritten to match (loop / tuck / coil / end). Full build: all knots ok, no warnings. Double overhand still uses the barrel drawing.
+
+## 2026-10-21 — Checker upgrades (before the new-knots Wave 1)
+Owner approved Wave 1 of the new-knots proposal (`/home/none/git/_todo/knots-new-knots-proposal-2026-10.html`):
+cleat hitch, trucker's hitch, taut-line hitch, anchor bend, alpine butterfly, zeppelin bend,
+figure-nine stopper, Ashley stopper, uni knot, autoblock. Checker first:
+- `KNOWN['5_2']` added (needed for the figure-nine).
+- `tests/check_jones.py`, run by `build.py` before anything else: every KNOWN entry
+  (3_1, 4_1, 5_1, 5_2, 6_1, 7_1, 9_1) recomputed from its PD code with an independent
+  bracket routine; 8_18 from the closed braid (s1 s2^-1)^4 (a PD code recalled from memory
+  for 8_18 was wrong, det 37, and was not used); `jones_loops` checked on torus (3,2),
+  (5,2), the figure-eight curve, Hopf link and unlink; the closure rule on open arcs.
+- `knotlib.close_above_below` / `jones_loops` / `link_pair` / `rope_alone`: links of
+  several ropes under one fixed closure rule (rope 0 closed above everything, rope 1
+  below), so link values do not depend on how the closing arcs are drawn. Crossings
+  that land exactly on a polyline vertex are de-duplicated in the new code
+  (found with a braid sampled on its crossings; `find_crossings` itself unchanged).
+- `expect_link` pins on the 7 two-rope knots (square, granny, sheet bend, fisherman's,
+  water, flat overhand, carrick). Square ropes are unlinked (lk 0), granny lk -3:
+  the link test separates them, the per-rope test cannot.
+- Closure validity: a whole closure with half powers of t is reported as invalid.
+  The "other pairing" of ends in two-rope knots is invalid in every bend tried,
+  so it is not used.
+- `tools/invariants.py <slug>`: per-rope types (old and fixed closure), link, closure.
+- Per-rope checking (`expect_each`) already existed; the proposal page listed it as new.
+- Checked: all 75 knots unchanged vs the baseline run; mutation test (square pinned
+  with granny's link, overhand expected 5_2) fails the build as it should.

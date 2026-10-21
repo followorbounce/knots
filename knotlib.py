@@ -745,6 +745,7 @@ KNOWN = {
     '3_1': _torus2(3),
     '4_1': {-8: 1, -4: -1, 0: 1, 4: -1, 8: 1},
     '5_1': _torus2(5),
+    '5_2': {4: 1, 8: -1, 12: 2, 16: -1, 20: 1, 24: -1},
     '6_1': {-16: 1, -12: -1, -8: 1, -4: -2, 0: 2, 4: -1, 8: 1},
     '7_1': _torus2(7),
     '9_1': _torus2(9),
@@ -759,3 +760,164 @@ KNOWN['surgeon2'] = jones_mul(KNOWN['5_1'], jones_mirror(KNOWN['5_1']))
 def knot_type_ok(V, name):
     ref = KNOWN[name]
     return V == ref or V == jones_mirror(ref)
+
+
+# ---------------------------------------------------------------- links of several ropes
+#
+# The whole-closure check above joins rope ends "through the outside" and assumes
+# the joining arcs cross nothing. For comparing bends that are built from the same
+# parts (two overhands) we need the link formed when each rope is closed on its
+# own, and that depends on how the closing arcs pass each other. Fixed rule:
+# rope A is closed by a path lifted above everything in the drawing, rope B by a
+# path dropped below everything. A strand that lies above (or below) everything
+# can be moved anywhere, so the link type depends only on this rule and on which
+# rope is A, not on the radii or the way round the arcs go.
+
+def close_above_below(ropes, levels):
+    """Close each rope into a loop through the outside of the drawing.
+    levels[i] = +1 lifts rope i's closing path above everything, -1 drops it below.
+    Returns closed polylines (last point joins the first)."""
+    allp = np.vstack(ropes)
+    c = allp[:, :2].mean(axis=0)
+    rmax = float(np.max(np.linalg.norm(allp[:, :2] - c, axis=1)))
+    H = float(np.max(np.abs(allp[:, 2]))) + 10.0
+    loops = []
+    for i, (P, lev) in enumerate(zip(ropes, levels)):
+        z = H * lev
+        R_ = rmax * (1.3 + 0.2 * i) + 1.0
+
+        def spoke(e):
+            u = e[:2] - c
+            u = u / (np.linalg.norm(u) + 1e-12)
+            # a near-vertical step to the closing level, then straight out
+            return [np.array([e[0] + 1e-3 * u[0], e[1] + 1e-3 * u[1], z]),
+                    np.array([c[0] + R_ * u[0], c[1] + R_ * u[1], z])], math.atan2(u[1], u[0])
+        out_end, a_end = spoke(P[-1])
+        out_start, a_start = spoke(P[0])
+        sweep = (a_start - a_end) % (2 * math.pi)
+        arc = [np.array([c[0] + R_ * math.cos(a_end + sweep * s), c[1] + R_ * math.sin(a_end + sweep * s), z])
+               for s in np.linspace(0, 1, max(8, int(sweep / 0.08)))[1:-1]]
+        tail = out_end + arc + out_start[::-1]
+        loops.append(np.vstack([P] + [np.array(tail)]))
+    return loops
+
+
+def _loop_crossings(loops):
+    """Crossings of closed polylines (each loop gets its closing segment)."""
+    shut = [np.vstack([L, L[:1]]) for L in loops]
+    cr = find_crossings(shut)
+    # drop the false hit between a loop's last and first segment (they share a point)
+    keep = []
+    for x in cr:
+        if x['ra'] == x['rb']:
+            n = len(shut[x['ra']]) - 1
+            if abs(x['ia'] - x['ib']) > n - 3:
+                continue
+        # a crossing exactly on a polyline vertex is found on both neighbouring segments
+        if any(y['ra'] == x['ra'] and y['rb'] == x['rb'] and abs(y['ia'] - x['ia']) < 1e-6
+               and abs(y['ib'] - x['ib']) < 1e-6 for y in keep):
+            continue
+        keep.append(x)
+    return shut, keep
+
+
+def jones_loops(loops):
+    """Jones polynomial of the oriented link made of closed polylines, as
+    {4 x power of t: coeff} (two-component links have half-integer powers).
+    Also returns the linking number of components 0 and 1 (0 if fewer)."""
+    shut, cr = _loop_crossings(loops)
+    if len(cr) > 22:
+        raise ValueError('%d crossings: too many for the state sum' % len(cr))
+    seq_by = []
+    for k, P in enumerate(shut):
+        n = len(P) - 1
+        mine = []
+        for ci, c in enumerate(cr):
+            if c['ra'] == k:
+                mine.append((c['ia'], ci, 'a'))
+            if c['rb'] == k:
+                mine.append((c['ib'], ci, 'b'))
+        mine.sort()
+        seq = []
+        for f, ci, side in mine:
+            i = int(min(max(0, math.floor(f)), n - 1))
+            t = P[i + 1, :2] - P[i, :2]
+            seq.append((ci, side, t / (np.linalg.norm(t) + 1e-12)))
+        seq_by.append(seq)
+    # passage labels; the arc leaving passage p runs to the next passage of the same loop
+    pos, prev, free = {}, {}, 0
+    label = 0
+    for seq in seq_by:
+        if not seq:
+            free += 1
+            continue
+        first = label
+        for j, (ci, side, t) in enumerate(seq):
+            pos.setdefault(ci, {})[side] = (label, t)
+            prev[label] = label - 1 if j else first + len(seq) - 1
+            label += 1
+    m = label
+    X, writhe, lk2 = [], 0, 0
+    for ci, c in enumerate(cr):
+        a_over = c['za'] > c['zb']
+        over_side, under_side = ('a', 'b') if a_over else ('b', 'a')
+        pu, tu = pos[ci][under_side]
+        po, to = pos[ci][over_side]
+        a_in, c_out, o_in, o_out = prev[pu], pu, prev[po], po
+        cross = (-tu[0]) * to[1] - (-tu[1]) * to[0]
+        X.append((a_in, o_out, c_out, o_in) if cross > 0 else (a_in, o_in, c_out, o_out))
+        s = 1 if to[0] * tu[1] - to[1] * tu[0] > 0 else -1
+        writhe += s
+        if {c['ra'], c['rb']} == {0, 1}:
+            lk2 += s
+    from itertools import product
+    n = len(cr)
+    bracket = {}
+    for state in product((0, 1), repeat=n):
+        parent = list(range(m))
+
+        def find(x):
+            while parent[x] != x:
+                parent[x] = parent[parent[x]]
+                x = parent[x]
+            return x
+        na = 0
+        for (a, b, cc, d), s in zip(X, state):
+            if s == 0:
+                parent[find(a)] = find(b); parent[find(cc)] = find(d); na += 1
+            else:
+                parent[find(a)] = find(d); parent[find(b)] = find(cc)
+        loops_n = len({find(x) for x in range(m)}) + free
+        poly = {na - (n - na): 1}
+        for _ in range(loops_n - 1):
+            nxt = {}
+            for e, v in poly.items():
+                nxt[e + 2] = nxt.get(e + 2, 0) - v
+                nxt[e - 2] = nxt.get(e - 2, 0) - v
+            poly = nxt
+        for e, v in poly.items():
+            bracket[e] = bracket.get(e, 0) + v
+    sign = -1 if writhe % 2 else 1
+    out = {}
+    for e, v in bracket.items():
+        if v:
+            k = -(e - 3 * writhe)
+            out[k] = out.get(k, 0) + v * sign
+    return {k: v for k, v in out.items() if v}, lk2 // 2
+
+
+def link_pair(ropes, i=0, j=1):
+    """Fixed-rule link of ropes i (closed above) and j (closed below):
+    (Jones polynomial, linking number). Ropes other than i and j are left out."""
+    loops = close_above_below([ropes[i], ropes[j]], [+1, -1])
+    return jones_loops(loops)
+
+
+def rope_alone(ropes, i):
+    """Knot type of rope i on its own, closed above the drawing (fixed rule)."""
+    return jones_loops(close_above_below([ropes[i]], [+1]))[0]
+
+
+def jones_key_str(V):
+    """Compact, exact text form for storing expected values: 'k:c,k:c' sorted."""
+    return ','.join('%d:%d' % (k, v) for k, v in sorted(V.items()))

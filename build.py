@@ -411,8 +411,22 @@ def write_meta(paths):
     open(os.path.join(ROOT, 'llms.txt'), 'w').write('\n'.join(lines) + '\n')
 
 
+def run_tests():
+    """Every tests/check_*.py must pass before any knot is trusted."""
+    import glob
+    import subprocess
+    for t in sorted(glob.glob(os.path.join(ROOT, 'tests', 'check_*.py'))):
+        r = subprocess.run([sys.executable, t], capture_output=True, text=True)
+        print('%-34s %s' % (os.path.basename(t), 'ok' if r.returncode == 0 else 'FAILED'))
+        if r.returncode:
+            print(r.stdout[-3000:] + r.stderr[-2000:])
+            sys.exit(1)
+
+
 def main():
     check_only = '--check' in sys.argv
+    if '--skip-tests' not in sys.argv:
+        run_tests()
     items, bad = [], False
     for k in KNOTS:
         knot, built = build_knot(k)
@@ -424,7 +438,9 @@ def main():
             probs.append('crossings %s != %s' % (knot.get('ncross'), k['expect_cross']))
         if k.get('expect'):
             V = knotlib.jones(knot.get('jones_ropes') or built['ropes'], knot.get('closure', [(0, 1)]))
-            if knotlib.knot_type_ok(V, k['expect']):
+            if any(e % 4 for e in V):
+                probs.append('closure is not a valid diagram (half-integer powers): the joining arcs cross the drawing')
+            elif knotlib.knot_type_ok(V, k['expect']):
                 kt = 'type %s ok' % k['expect']
             else:
                 probs.append('knot type is not %s (Jones %s)' % (k['expect'], knotlib.jones_str(V)))
@@ -435,6 +451,16 @@ def main():
                     kt += ' rope%d %s ok' % (ri, name)
                 else:
                     probs.append('rope %d is not %s (Jones %s)' % (ri, name, knotlib.jones_str(V)))
+        if k.get('expect_link'):
+            want = k['expect_link']
+            V, lk = knotlib.link_pair(built['ropes'])
+            got = knotlib.jones_key_str(V)
+            if 'lk' in want and abs(lk) != abs(want['lk']):
+                probs.append('ropes 0/1 linking number %d, expected %d' % (lk, want['lk']))
+            elif 'jones' in want and got != want['jones'] and got != knotlib.jones_key_str(knotlib.jones_mirror(V)):
+                probs.append('ropes 0/1 link Jones %s, expected %s' % (got, want['jones']))
+            else:
+                kt += ' link ok (lk %d)' % lk
         status = 'ok' if not probs else '; '.join(probs)
         print('%-34s %3d crossings  %s %s' % (k['slug'], len(built['crossings']), status, kt))
         bad = bad or bool(probs)

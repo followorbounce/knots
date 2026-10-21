@@ -80,7 +80,7 @@ KNOTS = [
         ],
     },
     {
-        'slug': 'square-knot', 'geo': 'square_knot', 'expect': 'square', 'name': 'Square Knot', 'aka': ['Reef knot'],
+        'slug': 'square-knot', 'expect_link': {'lk': 0, 'jones': '-2:-1,2:-1'}, 'geo': 'square_knot', 'expect': 'square', 'name': 'Square Knot', 'aka': ['Reef knot'],
         'chapter': 'binding', 'jobs': ['bind'], 'acts': ['Household', 'Sailing'],
         'difficulty': 1, 'security': 'Low', 'untie': 'Easy',
         'brief': 'A flat binding knot for tying the two ends of one cord round something: a parcel, a bandage, '
@@ -152,7 +152,7 @@ KNOTS = [
         ],
     },
     {
-        'slug': 'sheet-bend', 'geo': 'sheet_bend', 'name': 'Sheet Bend', 'aka': ['Weaver’s knot', 'Becket bend'],
+        'slug': 'sheet-bend', 'expect_link': {'lk': 0, 'jones': '-2:-1,2:-1'}, 'geo': 'sheet_bend', 'name': 'Sheet Bend', 'aka': ['Weaver’s knot', 'Becket bend'],
         'chapter': 'bend', 'jobs': ['join'], 'acts': ['Sailing', 'Camping', 'Household'],
         'difficulty': 1, 'security': 'Moderate', 'untie': 'Easy',
         'brief': 'The everyday knot for joining two ropes, including ropes of different thickness. '
@@ -428,7 +428,7 @@ W2 = [
         ],
     },
     {
-        'slug': 'granny-knot', 'geo': 'granny_knot', 'name': 'Granny Knot', 'aka': ['Lubber’s knot'],
+        'slug': 'granny-knot', 'expect_link': {'lk': -3, 'jones': '-26:-1,-18:-1,-14:1,-10:-1,-6:1,-2:-1'}, 'geo': 'granny_knot', 'name': 'Granny Knot', 'aka': ['Lubber’s knot'],
         'chapter': 'binding', 'jobs': [], 'acts': ['Household'], 'expect': 'granny',
         'difficulty': 1, 'security': 'Poor', 'untie': 'Jams or slips',
         'brief': 'The square knot tied wrong: both halves twisted the same way. It is shown here so you can recognise '
@@ -725,7 +725,7 @@ KNOTS += W2B
 
 W3 = [
     {
-        'slug': 'fishermans-knot', 'geo': 'fishermans_knot', 'name': 'Fisherman’s Knot', 'aka': ['Angler’s knot', 'Englishman’s bend'],
+        'slug': 'fishermans-knot', 'expect_link': {'lk': 3, 'jones': '-18:-1,-14:2,-10:-2,-6:3,-2:-2,2:1,6:-1,10:-1,18:-1'}, 'geo': 'fishermans_knot', 'name': 'Fisherman’s Knot', 'aka': ['Angler’s knot', 'Englishman’s bend'],
         'chapter': 'bend', 'jobs': ['join'], 'acts': ['Fishing', 'Camping'], 'expect_each': ['3_1', '3_1'],
         'difficulty': 1, 'security': 'High', 'untie': 'Moderate',
         'brief': 'Each end ties an overhand knot round the other rope. Pull the standing parts and the two knots slide '
@@ -746,7 +746,7 @@ W3 = [
         ],
     },
     {
-        'slug': 'water-knot', 'geo': 'water_knot', 'name': 'Water Knot', 'aka': ['Ring bend', 'Tape knot'],
+        'slug': 'water-knot', 'expect_link': {'lk': -2, 'jones': '-10:-1,-2:-1,2:-2,6:2,10:-2,14:3,18:-2,22:2,26:-1'}, 'geo': 'water_knot', 'name': 'Water Knot', 'aka': ['Ring bend', 'Tape knot'],
         'chapter': 'bend', 'jobs': ['join'], 'acts': ['Climbing', 'Camping'], 'expect_each': ['3_1', '3_1'],
         'difficulty': 1, 'security': 'High', 'untie': 'Hard',
         'brief': 'An overhand knot in one end, followed back through in reverse by the other end. It is the standard way to '
@@ -787,7 +787,7 @@ W3 = [
         ],
     },
     {
-        'slug': 'flat-overhand-bend', 'geo': 'flat_overhand_bend', 'name': 'Flat Overhand Bend', 'aka': ['Offset overhand bend'],
+        'slug': 'flat-overhand-bend', 'expect_link': {'lk': 3, 'jones': '18:-1,26:-1,34:-1,46:1,54:1,58:-1'}, 'geo': 'flat_overhand_bend', 'name': 'Flat Overhand Bend', 'aka': ['Offset overhand bend'],
         'chapter': 'bend', 'jobs': ['join'], 'acts': ['Climbing', 'Camping'], 'expect_each': ['3_1', '3_1'],
         'difficulty': 1, 'security': 'Moderate', 'untie': 'Moderate',
         'brief': 'The two ends held together and tied as one in an overhand knot. Because the knot sits to one side, it slides '
@@ -938,7 +938,7 @@ W4 = [
     _th('turks-head-4l5b', 'turks_head_4l5b', 4, 5, {'expect_cross': 15}),
     _th('turks-head-5l4b', 'turks_head_5l4b', 5, 4, {'expect_cross': 16}),
     {
-        'slug': 'carrick-bend', 'geo': 'carrick_bend', 'name': 'Carrick Bend', 'aka': ['Sailor’s knot'],
+        'slug': 'carrick-bend', 'expect_link': {'lk': 0, 'jones': '-14:-1,-10:5,-6:-11,-2:15,2:-20,6:20,10:-19,14:15,18:-9,22:4,26:-1'}, 'geo': 'carrick_bend', 'name': 'Carrick Bend', 'aka': ['Sailor’s knot'],
         'chapter': 'bend', 'jobs': ['join'], 'acts': ['Sailing', 'Gifts'], 'expect': '8_18', 'expect_each': ['unknot', 'unknot'],
         'difficulty': 2, 'security': 'High', 'untie': 'Easy',
         'brief': 'A join for heavy rope, woven strictly over-under. Laid flat it is one of the most handsome knots there is; '
