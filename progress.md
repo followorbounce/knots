@@ -188,3 +188,6 @@ figure-nine stopper, Ashley stopper, uni knot, autoblock. Checker first:
 - Per-rope checking (`expect_each`) already existed; the proposal page listed it as new.
 - Checked: all 75 knots unchanged vs the baseline run; mutation test (square pinned
   with granny's link, overhand expected 5_2) fails the build as it should.
+
+## 2026-10-28 — Reach plan F3: page weight
+Site total 39.2 MB → 9.8 MB. Front page 6.15 MB → 0.05 MB; "best knots for" pages 0.9–2.8 MB → ~0.02 MB; largest knot page (square lashing) 1.24 → 0.50 MB. Thumbnails are now lazy-loaded files in `assets/thumbs/` (75); step drawings use the compact path encoding (pixel-identical). Stretch merging measured and left off (see CLAUDE.md). Share cards use the thumbnail files. Not yet pushed.

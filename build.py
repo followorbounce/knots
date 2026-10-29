@@ -11,6 +11,8 @@ index.html is generated; edit the sources, not the output.
 import html
 import json
 import os
+import re
+import subprocess
 import sys
 
 import geometry
@@ -33,7 +35,7 @@ HEAD = '''<!doctype html>
 <link rel="canonical" href="{canon}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
-<meta name="theme-color" content="#172326">
+{og}<meta name="theme-color" content="#172326">
 <link rel="icon" href="{up}assets/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,6 +68,24 @@ FOOT = '''</main>
 '''
 
 
+def clip(text, n):
+    """Shorten to at most n characters on a word boundary, with an ellipsis when cut."""
+    if len(text) <= n:
+        return text
+    return text[:n - 1].rsplit(' ', 1)[0].rstrip(',;:—-') + '…'
+
+
+def og_tags(canon, alt):
+    """Share-picture tags. The picture, og/<canonical path>.jpg, is drawn by engine/og_cards.py in the
+    followorbounce.github.io repo; run it after adding pages."""
+    rel = re.sub(r'\.html$', '', canon[len(SITE):].rstrip('/')) or 'index'
+    img = SITE + 'og/' + rel + '.jpg'
+    return ('<meta property="og:image" content="%s">\n<meta property="og:image:width" content="1200">\n'
+            '<meta property="og:image:height" content="630">\n<meta property="og:image:alt" content="%s">\n'
+            '<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="%s">\n'
+            % (img, html.escape(alt, quote=True), img))
+
+
 def page(path, title, desc, body, nav='', cls='', scripts=''):
     depth = path.count('/')
     up = '../' * depth
@@ -73,7 +93,7 @@ def page(path, title, desc, body, nav='', cls='', scripts=''):
     marks = {k: '' for k in ('n_knots', 'n_finder', 'n_basics', 'n_about')}
     if nav:
         marks['n_' + nav] = ' aria-current="page"'
-    out = HEAD.format(title=E(title), desc=E(desc), canon=canon, up=up, cls=cls, **marks) + body + \
+    out = HEAD.format(title=E(title), desc=E(desc), canon=canon, up=up, cls=cls, og=og_tags(canon, title), **marks) + body + \
         FOOT.format(up=up, scripts=scripts.replace('{up}', up))
     full = os.path.join(ROOT, path)
     os.makedirs(os.path.dirname(full), exist_ok=True)
@@ -231,11 +251,25 @@ def knot_page(k, knot, built, by_slug):
                '<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>\n'
                '<script src="{up}assets/bench.js"></script>')
     return page('knots/%s/index.html' % k['slug'], '%s | Knot Atlas' % k['name'],
-                '%s: %s' % (k['name'], k['brief'][:140]), body, nav='knots', cls='p-knot', scripts=scripts)
+                '%s: %s' % (k['name'], clip(k['brief'], 140)), body, nav='knots', cls='p-knot', scripts=scripts)
 
 
-def thumb(knot, built):
-    return knotlib.svg_diagram(knot, built, None, scale=40, labels=False)
+# Thumbnails are files (assets/thumbs/<slug>.svg) loaded lazily as the card scrolls into view: inline, 76 drawings made
+# the front page 6 MB. An <img> does not see the page's CSS, so the object colours (site.css) travel inside each file.
+THUMB_CSS = ('.obj-pole{fill:#d8c39a;stroke:#8a734b;stroke-width:1.5}.obj-ring{stroke:#8f989b}'
+             '.obj-pole.thin{fill:#8f989b;stroke:none}.obj-pole.rope{fill:#e7c88a;stroke:#8a6a2c}'
+             '@media (prefers-color-scheme: dark){.obj-pole{fill:#6b5a3c;stroke:#a68c5c}.obj-ring{stroke:#6c7477}.obj-pole.thin{fill:#6c7477}}')
+
+
+def thumb(k, knot, built, up):
+    svg = knotlib.svg_diagram(knot, built, None, scale=40, labels=False)
+    w, h = (int(float(v)) for v in re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg).groups())
+    svg = svg.replace(' class="diagram" role="img">', '><style>%s</style>' % THUMB_CSS, 1)
+    path = os.path.join(ROOT, 'assets', 'thumbs', k['slug'] + '.svg')
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w') as f:
+        f.write(svg)
+    return '<img src="%sassets/thumbs/%s.svg" width="%d" height="%d" alt="" loading="lazy" decoding="async">' % (up, k['slug'], w, h)
 
 
 def index_page(items):
@@ -243,7 +277,7 @@ def index_page(items):
     for k, knot, built in items:
         cards.append(f'''<li class="card" data-ch="{k['chapter']}" data-acts="{' '.join(k['acts'])}" data-name="{E((k['name'] + ' ' + ' '.join(k['aka'])).lower())}">
   <a href="knots/{k['slug']}/index.html">
-    <div class="thumb">{thumb(knot, built)}</div>
+    <div class="thumb">{thumb(k, knot, built, '')}</div>
     <span class="eyebrow">{E(CHAPTERS[k['chapter']][0])}</span>
     <h3>{E(k['name'])}<span class="tick" aria-label="learned" hidden>✓</span></h3>
     <p>{E(k['brief'].split('. ')[0])}.</p>
@@ -357,7 +391,7 @@ def activity_pages(items):
         ks.sort(key=lambda t: (t[0]['difficulty'], t[0]['name']))
         cards = ''.join('''<li class="card"><a href="../../knots/%s/index.html"><div class="thumb">%s</div>
   <span class="eyebrow">%s</span><h3>%s</h3><p>%s</p><span class="dots-line">%s</span></a></li>''' % (
-            k['slug'], thumb(n, b), E(CHAPTERS[k['chapter']][0]), E(k['name']), E(k['brief'].split('. ')[0] + '.'),
+            k['slug'], thumb(k, n, b, '../../'), E(CHAPTERS[k['chapter']][0]), E(k['name']), E(k['brief'].split('. ')[0] + '.'),
             difficulty(k['difficulty'])) for k, n, b in ks)
         others = ''.join('<a class="chip" href="../%s/index.html">%s</a>' % (a.lower(), a) for a in ACTIVITIES if a != act and any(a in k['acts'] for k, _, _ in items))
         body = f'''
@@ -476,6 +510,10 @@ def main():
     write_feed(items)
     write_meta(paths)
     print('wrote %d pages' % len(paths))
+    # share pictures and the "More from Follow or Bounce" block (engine/og_cards.py in the homepage repo, when it sits next to this one)
+    og_pass = os.path.join(ROOT, '..', 'followorbounce.github.io', 'engine', 'og_cards.py')
+    if os.path.exists(og_pass):
+        subprocess.run([sys.executable, og_pass, 'knots'])
     if bad:
         print('WARNING: geometry problems above')
 

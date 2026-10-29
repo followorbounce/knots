@@ -473,7 +473,74 @@ def _chunks(P, size=5):
         yield i, min(n - 1, i + size)
 
 
-def svg_diagram(knot, built, step_index=None, scale=60, pad=0.6, labels=True, tags_for_step=True):
+def _num(t):
+    """A coordinate in tenths of a pixel, written as short as SVG allows: 12, 1.5, .5, -.5."""
+    v = '%d' % (t // 10) if t % 10 == 0 else '%.1f' % (t / 10)
+    if v.startswith('0.'):
+        return v[1:]
+    if v.startswith('-0.'):
+        return '-' + v[2:]
+    return v
+
+
+def _path(pts, X, Y):
+    """Path data for a polyline: absolute start, then relative steps (exact to 0.1 px, no drift)."""
+    q = [(int(round(X(p[0]) * 10)), int(round(Y(p[1]) * 10))) for p in pts]
+    out = ['M%s %s' % (_num(q[0][0]), _num(q[0][1])), 'l']
+    for (ax, ay), (bx, by) in zip(q, q[1:]):
+        for t in (bx - ax, by - ay):
+            v = _num(t)
+            out.append(v if (out[-1] == 'l' or v.startswith('-')) else ' ' + v)
+    return ''.join(out) if len(q) > 1 else out[0]
+
+
+def _crowded(ropes, objects, r):
+    """Per rope, per point: True where the draw order matters, i.e. where another stretch of rope (any rope, or this
+    one further along) or an object comes within reach of the drawn stroke. Elsewhere a rope can be drawn as one
+    long line instead of short depth-sorted pieces, which is what keeps the drawings small."""
+    reach = 2.6 * r                              # rope width plus the edge stroke, with room to spare
+    pts = [P[:, :2] for P in ropes]
+    arcs = [np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(Q, axis=0), axis=1))]) for Q in pts]
+    allp = np.vstack(pts)
+    rid = np.concatenate([np.full(len(Q), k) for k, Q in enumerate(pts)])
+    arc = np.concatenate(arcs)
+    out = []
+    for k, Q in enumerate(pts):
+        flag = np.zeros(len(Q), bool)
+        for s0 in range(0, len(Q), 512):
+            q = Q[s0:s0 + 512]
+            d = np.linalg.norm(q[:, None, :] - allp[None, :, :], axis=2)
+            near = d < reach
+            same = (rid[None, :] == k) & (np.abs(arcs[k][s0:s0 + 512][:, None] - arc[None, :]) < 2.5 * reach)
+            flag[s0:s0 + 512] = (near & ~same).any(axis=1)
+        for ob in objects:
+            ex, ey = _obj_extent(ob)
+            flag |= (Q[:, 0] > ex.min() - reach) & (Q[:, 0] < ex.max() + reach) & \
+                    (Q[:, 1] > ey.min() - reach) & (Q[:, 1] < ey.max() + reach)
+        grown = flag.copy()                      # a margin of a few points on each side of every crowded stretch
+        for sh in range(1, 6):
+            grown[sh:] |= flag[:-sh]
+            grown[:-sh] |= flag[sh:]
+        out.append(grown)
+    return out
+
+
+def _runs(crowd, n, size=5):
+    """Pieces to draw along one rope (indices 0..n): short ones where crowded, one long piece between."""
+    i = 0
+    while i < n:
+        if crowd[i] or crowd[min(n, i + 1)]:
+            yield i, min(n, i + size)
+            i += size
+        else:
+            j = i + 1
+            while j < n and not crowd[j]:
+                j += 1
+            yield i, j
+            i = j
+
+
+def svg_diagram(knot, built, step_index=None, scale=60, pad=0.6, labels=True, tags_for_step=True, merge=False):
     """Flat drawing of the knot with correct over/under. step_index=None -> finished knot."""
     r = built['r']
     ropes = built['ropes']
@@ -490,7 +557,9 @@ def svg_diagram(knot, built, step_index=None, scale=60, pad=0.6, labels=True, ta
     def X(x): return (x - x0) * scale
     def Y(y): return (y1 - y) * scale
 
-    items = []  # (z, svg)
+    shown = [P[:max(1, int(round(vis[k] * (len(P) - 1)))) + 1] for k, P in enumerate(ropes)]
+    crowd = _crowded(shown, knot.get('objects', []), r) if merge else None
+    items, styles = [], {}  # (z, svg); class -> stroke style
     for ob in knot.get('objects', []):
         items.extend(_obj_svg(ob, X, Y, scale))
     for k, P in enumerate(ropes):
@@ -501,17 +570,20 @@ def svg_diagram(knot, built, step_index=None, scale=60, pad=0.6, labels=True, ta
         w_out = (2 * r) * scale + 2.2
         w_in = (2 * r) * scale - 1.6
         Q = P[:n + 1]
-        for i, j in _chunks(Q):
+        # one class per stroke style (the style sheet goes into the drawing); named by colour and width, so drawings
+        # of the same knot on one page share them safely
+        key = '%s%d' % (knot['ropes'][k].get('color', 'a'), round(w_out * 10))
+        styles['k%so' % key] = 'stroke:%s;stroke-width:%.1f;stroke-linecap:butt' % (edge, w_out)
+        styles['k%sO' % key] = 'stroke:%s;stroke-width:%.1f;stroke-linecap:round' % (edge, w_out)
+        styles['k%si' % key] = 'stroke:%s;stroke-width:%.1f;stroke-linecap:round' % (col, w_in)
+        for i, j in (_chunks(Q) if crowd is None else _runs(crowd[k], len(Q) - 1)):
             a, b = max(0, i - 1), min(len(Q) - 1, j + 1)
             ends = [Q[i] if i == 0 else (Q[i] + Q[i - 1]) / 2] + list(Q[i + 1:j]) + \
                    [Q[j] if j == len(Q) - 1 else (Q[j] + Q[j + 1]) / 2]
-            out_pts = ' '.join('%.1f,%.1f' % (X(p[0]), Y(p[1])) for p in ends)
-            in_pts = ' '.join('%.1f,%.1f' % (X(p[0]), Y(p[1])) for p in Q[a:b + 1])
-            capo = 'round' if (i == 0 or j == len(Q) - 1) else 'butt'
+            capo = 'O' if (i == 0 or j == len(Q) - 1) else 'o'
             z = float(Q[i:j + 1, 2].mean())
-            items.append((z, '<polyline points="%s" fill="none" stroke="%s" stroke-width="%.1f" stroke-linecap="%s" stroke-linejoin="round"/>'
-                          '<polyline points="%s" fill="none" stroke="%s" stroke-width="%.1f" stroke-linecap="round" stroke-linejoin="round"/>'
-                          % (out_pts, edge, w_out, capo, in_pts, col, w_in)))
+            items.append((z, '<path class="k%s%s" d="%s"/><path class="k%si" d="%s"/>'
+                          % (key, capo, _path(ends, X, Y), key, _path(Q[a:b + 1], X, Y))))
         # end marker on the moving end
         if step_index is not None and vis[k] < 0.999:
             p = Q[-1]
@@ -521,7 +593,10 @@ def svg_diagram(knot, built, step_index=None, scale=60, pad=0.6, labels=True, ta
     if labels and step_index is not None and tags_for_step:
         for t in step_tags(knot, built, step_index):
             body += _tag_svg(X(t['p'][0]), Y(t['p'][1]) - r * scale - 4, t['over'])
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %.0f %.0f" class="diagram" role="img">%s</svg>' % (W, H, body)
+    css = ''.join('.%s{%s}' % kv for kv in sorted(styles.items()))
+    if css:
+        css = '<style>%s{fill:none;stroke-linejoin:round}%s</style>' % (','.join('.' + c for c in sorted(styles)), css)
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %.0f %.0f" class="diagram" role="img">%s%s</svg>' % (W, H, css, body)
 
 
 def _tag_svg(x, y, over):

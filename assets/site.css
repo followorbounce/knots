@@ -84,6 +84,7 @@ select, input[type="search"] {
 .card a:hover { border-color: var(--ink); }
 .card .thumb { height: 150px; display: grid; place-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 4px; }
 .card .thumb svg { max-height: 140px; width: auto; }
+.card .thumb img { max-height: 140px; max-width: 100%; width: auto; height: auto; }
 .card p { font-size: 14px; color: var(--muted); line-height: 1.45; }
 .card .tick { color: var(--over); margin-left: 6px; font-size: 18px; }
 .dots-line { font-size: 13px; color: var(--muted); }

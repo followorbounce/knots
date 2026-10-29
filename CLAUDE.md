@@ -50,3 +50,12 @@ owner's request (its engine files are kept there, unused).
 ## Deploy
 GitHub Pages from `main` at https://followorbounce.github.io/knots/ .
 Cloudflare Web Analytics beacon in `HEAD` in build.py (shared followorbounce.github.io token).
+
+
+## Share pictures (og:image)
+Added 2026-10-28. Every public page has a 1200×630 share picture at `og/<canonical path>.jpg` (`og/index.jpg` for the front page) and the tags `og:image` (+ width, height, alt), `twitter:card` = `summary_large_image` and `twitter:image`. `build.py` writes the tags (`og_tags()`), placed after the page's other og:/twitter: tags. The pictures are drawn by `engine/og_cards.py` in the followorbounce.github.io repo (one card template, this site's own palette and type, `og/manifest.json` = a hash per card so unchanged cards are skipped). After adding or renaming a page, or changing a title or description, run `python3 engine/og_cards.py knots` from that repo; it renders new cards, adds missing tags and deletes cards of pages that went away. `--check` lists pages without tags.
+
+## Page weight (2026-10-28, reach plan F3)
+The front page was 6 MB and the activity pages up to 2.8 MB because every card inlined a full knot drawing. Now:
+- **Thumbnails are files**: `build.py` `thumb()` writes `assets/thumbs/<slug>.svg` and the cards use `<img loading="lazy">` with the drawing's width/height (no layout shift). An `<img>` doesn't see `site.css`, so each file carries the object colours (`THUMB_CSS`, light + `prefers-color-scheme: dark`); keep it in step with the `--wood`/`--metal` tokens. The share cards use these files too.
+- **Smaller drawings** (`knotlib.svg_diagram`): rope pieces are `<path>` with relative coordinates in tenths of a pixel (`_path`, `_num`) and one class per stroke style in a `<style>` inside the drawing (class names carry rope colour + width, so drawings on one page share them safely); away from crossings and objects (`_crowded`: nothing else within 2.6 r) a rope stretch is one path instead of 5-point depth-sorted pieces (`_runs`). Crowded stretches keep the old 5-point pieces. **Merging is off by default (`merge=False`)**: the encoding alone renders pixel-identical drawings at 41% of the old bytes; merging reached 37% but shifted pixels in 378 of 438 drawings, not worth it on a site where crossings must read right. Pass `merge=True` only after a visual check.
