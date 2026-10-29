@@ -35,7 +35,7 @@ HEAD = '''<!doctype html>
 <link rel="canonical" href="{canon}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
-{og}<meta name="theme-color" content="#172326">
+{og}{ld}<meta name="theme-color" content="#172326">
 <link rel="icon" href="{up}assets/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,14 +86,33 @@ def og_tags(canon, alt):
             % (img, html.escape(alt, quote=True), img))
 
 
-def page(path, title, desc, body, nav='', cls='', scripts=''):
+def ld_json(items):
+    """schema.org JSON-LD blocks for the head. "</" is escaped so text can never close the script."""
+    return ''.join('<script type="application/ld+json">%s</script>\n'
+                   % json.dumps(dict({'@context': 'https://schema.org'}, **it), ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
+                   for it in items)
+
+
+def crumbs(*trail):
+    """BreadcrumbList from (name, url) pairs, the site's front page first."""
+    return {'@type': 'BreadcrumbList', 'itemListElement': [
+        {'@type': 'ListItem', 'position': i + 1, 'name': n, 'item': u} for i, (n, u) in enumerate(trail)]}
+
+
+def page(path, title, desc, body, nav='', cls='', scripts='', ld=None, crumb=None):
+    """crumb: the page's own breadcrumb name (pages below the front page), or a list of (name, url) pairs
+    between the front page and this page followed by that name. ld: further JSON-LD objects."""
     depth = path.count('/')
     up = '../' * depth
     canon = SITE + (path[:-len('index.html')] if path.endswith('index.html') else path)
+    items = list(ld or [])
+    if crumb:
+        trail = list(crumb) if isinstance(crumb, list) else [crumb]
+        items.append(crumbs((NAME, SITE), *trail[:-1], (trail[-1], canon)))
     marks = {k: '' for k in ('n_knots', 'n_finder', 'n_basics', 'n_about')}
     if nav:
         marks['n_' + nav] = ' aria-current="page"'
-    out = HEAD.format(title=E(title), desc=E(desc), canon=canon, up=up, cls=cls, og=og_tags(canon, title), **marks) + body + \
+    out = HEAD.format(title=E(title), desc=E(desc), canon=canon, up=up, cls=cls, og=og_tags(canon, title), ld=ld_json(items), **marks) + body + \
         FOOT.format(up=up, scripts=scripts.replace('{up}', up))
     full = os.path.join(ROOT, path)
     os.makedirs(os.path.dirname(full), exist_ok=True)
@@ -250,8 +269,16 @@ def knot_page(k, knot, built, by_slug):
     scripts = ('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n'
                '<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>\n'
                '<script src="{up}assets/bench.js"></script>')
+    # HowTo: Google stopped showing HowTo rich results in 2023; Bing and answer engines still read the steps.
+    canon = SITE + 'knots/%s/' % k['slug']
+    howto = {'@type': 'HowTo', 'name': 'How to tie the %s' % k['name'], 'description': k['brief'], 'url': canon,
+             'image': SITE + 'og/knots/%s.jpg' % k['slug'], 'supply': [{'@type': 'HowToSupply', 'name': 'Rope'}],
+             'step': [{'@type': 'HowToStep', 'position': i + 1, 'text': s['text']} for i, s in enumerate(knot['steps'])]}
+    if k['aka']:
+        howto['alternateName'] = list(k['aka'])
     return page('knots/%s/index.html' % k['slug'], '%s | Knot Atlas' % k['name'],
-                '%s: %s' % (k['name'], clip(k['brief'], 140)), body, nav='knots', cls='p-knot', scripts=scripts)
+                '%s: %s' % (k['name'], clip(k['brief'], 140)), body, nav='knots', cls='p-knot', scripts=scripts,
+                ld=[howto], crumb=k['name'])
 
 
 # Thumbnails are files (assets/thumbs/<slug>.svg) loaded lazily as the card scrolls into view: inline, 76 drawings made
@@ -315,7 +342,8 @@ def index_page(items):
 '''
     return page('index.html', 'Knot Atlas: interactive 3D knot guide',
                 'Learn knots step by step with 3D ropes you can turn, scrub and mirror. Stoppers, bends, hitches and loops for sailing, climbing, camping and home.',
-                body, nav='knots', cls='p-index', scripts='<script src="{up}assets/site.js"></script>')
+                body, nav='knots', cls='p-index', scripts='<script src="{up}assets/site.js"></script>',
+                ld=[{'@type': 'WebSite', 'name': NAME, 'url': SITE, 'inLanguage': 'en'}])
 
 
 def finder_page(items):
@@ -344,7 +372,7 @@ def finder_page(items):
 <script type="application/json" id="finder-data">{json.dumps(data)}</script>
 '''
     return page('finder/index.html', 'Knot finder | Knot Atlas', 'Choose a knot by what the rope has to do: stop, join, attach, loop, grip or bind.',
-                body, nav='finder', cls='p-finder', scripts='<script src="{up}assets/finder.js"></script>')
+                body, nav='finder', crumb='Knot finder', cls='p-finder', scripts='<script src="{up}assets/finder.js"></script>')
 
 
 def about_page(n):
@@ -367,7 +395,7 @@ def about_page(n):
 </section>
 '''
     return page('about/index.html', 'About | Knot Atlas', 'How Knot Atlas models knots, checks them, and what the drawings show.',
-                body, nav='about', cls='p-about')
+                body, nav='about', crumb='About', cls='p-about')
 
 
 ACT_INTRO = {
@@ -400,7 +428,8 @@ def activity_pages(items):
 <ul class="grid">{cards}</ul>
 <section class="related"><h2>Other activities</h2><div class="meta">{others}</div></section>'''
         paths.append(page('for/%s/index.html' % act.lower(), '%s knots | Knot Atlas' % act,
-                          'The most useful knots for %s, easiest first.' % act.lower(), body, nav='knots', cls='p-for'))
+                          'The most useful knots for %s, easiest first.' % act.lower(), body, nav='knots', cls='p-for',
+                          crumb='%s knots' % act))
     return paths
 
 

@@ -311,7 +311,7 @@ def build(page):
 <p class="lede">Six short pages on rope itself and on the words and habits every knot relies on. Read them in order or dip in.</p></section>
 <ol class="basics-grid">{cards}</ol>'''
     paths.append(page('basics/index.html', 'Basics | Knot Atlas', 'Rope construction, materials, care, coiling, terms and technique.',
-                      body, nav='basics', cls='p-basics'))
+                      body, nav='basics', cls='p-basics', crumb='Basics'))
     for i, p in enumerate(PAGES):
         content = body_for(p['slug']).replace('{ANATOMY}', anat_svg).replace('{TURNS}', turns_svg)
         body = f'''
@@ -320,5 +320,6 @@ def build(page):
 <section class="prose">{content}</section>
 {_pager(i)}'''
         paths.append(page('basics/%s/index.html' % p['slug'], '%s | Knot Atlas' % p['title'], p['intro'], body,
-                          nav='basics', cls='p-basics', scripts='<script src="{up}assets/site.js"></script>'))
+                          nav='basics', cls='p-basics', scripts='<script src="{up}assets/site.js"></script>',
+                          crumb=[('Basics', 'https://followorbounce.github.io/knots/basics/'), p['title']]))
     return paths
